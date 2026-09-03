@@ -1,0 +1,90 @@
+services:
+
+  # ==================================================================================================
+  # PHP-FPM Laravel
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: altertemplate_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - /var/www/vendor        # pakai vendor dari dalam container
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=altertemplate
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - REDIS_CLIENT=predis    # ← Redis
+      - REDIS_HOST=redis       # ← Redis
+      - REDIS_PORT=6379        # ← Redis
+      - SESSION_DRIVER=redis   # ← session ke Redis
+      - CACHE_STORE=redis      # ← cache ke Redis
+      - QUEUE_CONNECTION=redis # ← queue ke Redis
+    networks:
+      - template_services_template_network
+
+  # ==================================================================================================
+  # Nginx untuk Laravel
+
+  nginx_backend:
+    image: nginx:stable-alpine
+    container_name: altertemplate_nginx_backend
+    restart: unless-stopped
+    volumes:
+      - ./backend:/var/www
+      - ./nginx/backend.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - template_services_template_network
+
+  # ==================================================================================================
+  # React — Vite Dev Server (Hot Reload)
+  
+  frontend:
+    image: node:20-alpine
+    container_name: altertemplate_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules      # pakai node_modules dari dalam container
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+      - template_services_template_network
+
+  # ==================================================================================================
+  # Queue Worker
+
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: altertemplate_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - /var/www/vendor
+    command: php artisan queue:work --sleep=3 --tries=3
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=altertemplate
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - REDIS_CLIENT=predis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - backend
+    networks:
+      - template_services_template_network
+
+networks:
+  template_services_template_network:
+    external: true    # pakai network dari template_services

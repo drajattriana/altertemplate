@@ -7,8 +7,10 @@ Starter full-stack milik **Alterdev** untuk membangun aplikasi web dengan React,
 ## Status proyek
 
 - Landing page Alterdev: tersedia di `/`
-- Halaman login: tersedia di `/login`
-- Login baru berupa tampilan dan validasi dasar; autentikasi backend belum dibuat
+- Halaman login demo: tersedia di `/login`
+- Dashboard admin sederhana: tersedia di `/admin`
+- Kredensial development: username `admin`, password `admin`
+- Login demo disimpan di browser; autentikasi backend belum dibuat dan belum aman untuk production
 - Backend Laravel masih berupa skeleton awal
 - Mobile React Native tersedia di folder `mobile`, tetapi tidak dijalankan oleh Docker Compose utama
 - `docker-compose.yml` saat ini ditujukan untuk development lokal, bukan production

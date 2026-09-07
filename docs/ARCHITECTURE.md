@@ -92,7 +92,9 @@ Menghapus container aplikasi tidak menghapus database. Namun menjalankan `docker
 
 ## Kondisi autentikasi
 
-Route frontend `/login` sudah tersedia, tetapi backend belum memiliki endpoint login. Form tersebut belum boleh dianggap sebagai autentikasi sungguhan.
+Route frontend `/login` dan `/admin` sudah tersedia. Untuk sementara, login menggunakan username `admin` dan password `admin`, lalu menyimpan status login pada browser. Route guard frontend mencegah akses biasa ke dashboard tanpa status tersebut.
+
+Cara ini hanya cocok untuk demonstrasi layout. Kredensial berada di source frontend dan dapat dilihat oleh siapa pun, sehingga belum boleh dianggap sebagai autentikasi sungguhan atau digunakan di production. Backend belum memiliki endpoint login.
 
 Tahap implementasi autentikasi nantinya minimal mencakup:
 
@@ -102,4 +104,3 @@ Tahap implementasi autentikasi nantinya minimal mencakup:
 4. menyimpan state pengguna di frontend;
 5. melindungi route dashboard;
 6. menambahkan rate limiting dan pengujian.
-

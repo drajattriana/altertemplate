@@ -1,23 +1,36 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { DEMO_PASSWORD, DEMO_USERNAME, isDemoAuthenticated, loginDemo } from "../../utils/demoAuth";
 import "../../styles/Login.css";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+
+  if (isDemoAuthenticated()) {
+    return <Navigate to="/admin" replace />;
+  }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") || "").trim();
+    const username = String(form.get("username") || "").trim();
     const password = String(form.get("password") || "");
+    const remember = form.get("remember") === "on";
 
-    if (!email || !password) {
-      setMessage("Lengkapi email dan kata sandi terlebih dahulu.");
+    if (!username || !password) {
+      setMessage("Lengkapi username dan kata sandi terlebih dahulu.");
       return;
     }
 
-    setMessage("Tampilan siap. Sambungkan endpoint autentikasi untuk melanjutkan.");
+    if (username !== DEMO_USERNAME || password !== DEMO_PASSWORD) {
+      setMessage("Username atau kata sandi salah. Gunakan admin / admin.");
+      return;
+    }
+
+    loginDemo(remember);
+    navigate("/admin", { replace: true });
   };
 
   return (
@@ -44,12 +57,14 @@ const LoginPage = () => {
           <div className="login-heading">
             <p className="login-kicker">SELAMAT DATANG KEMBALI</p>
             <h2>Masuk ke akun Anda.</h2>
-            <p>Gunakan email yang terdaftar untuk membuka workspace.</p>
+            <p>Masuk dengan akun demo untuk membuka dashboard admin.</p>
           </div>
 
+          <div className="demo-credentials"><span>AKUN DEMO</span><strong>admin</strong><i>/</i><strong>admin</strong></div>
+
           <form className="login-form" onSubmit={handleSubmit} noValidate>
-            <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" autoComplete="email" placeholder="nama@perusahaan.com" onChange={() => setMessage("")} />
+            <label htmlFor="username">Username</label>
+            <input id="username" name="username" type="text" autoComplete="username" placeholder="Masukkan username" onChange={() => setMessage("")} />
 
             <div className="password-label"><label htmlFor="password">Kata sandi</label><a href="#forgot">Lupa kata sandi?</a></div>
             <div className="password-field">
@@ -62,7 +77,7 @@ const LoginPage = () => {
             <button className="submit-button" type="submit">Masuk ke workspace <span>→</span></button>
           </form>
 
-          <p className="login-help">Belum memiliki akses? <a href="mailto:hello@alterdev.id">Hubungi tim Alterdev</a></p>
+          <p className="login-help">Login ini sementara untuk kebutuhan template dan belum memakai backend.</p>
         </div>
         <p className="login-legal">Dengan masuk, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi Alterdev.</p>
       </section>

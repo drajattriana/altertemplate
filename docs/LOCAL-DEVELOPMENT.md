@@ -132,6 +132,40 @@ frontend/src/styles/
 
 Route aplikasi didefinisikan di `frontend/src/routes/index.tsx`.
 
+Struktur layout dashboard:
+
+```text
+frontend/src/
+├── components/app/
+│   ├── dashboard/          Komponen isi dashboard
+│   ├── AppHeader.tsx       Header, search, tema, dan user menu
+│   ├── AppSidebar.tsx      Navigasi utama
+│   ├── AppFooter.tsx       Footer aplikasi
+│   ├── AppIcon.tsx         Icon layout yang dipakai bersama
+│   ├── Backdrop.tsx        Overlay sidebar mobile
+│   └── SidebarWidget.tsx   Widget bagian bawah sidebar
+├── contexts/
+│   ├── SidebarContext.tsx  State expand, hover, dan mobile sidebar
+│   └── ThemeContext.tsx    State tema terang/gelap
+├── layouts/
+│   └── AppLayout.tsx       Penyusun seluruh layout dan Outlet
+└── pages/app/
+    └── DashboardPage.tsx   Komposisi halaman dashboard
+```
+
+Untuk mengganti isi dashboard, kerjakan komponen di `components/app/dashboard`. Untuk mengubah kerangka aplikasi, gunakan `AppLayout`, `AppHeader`, atau `AppSidebar`. Dengan pembagian ini, perubahan halaman tidak perlu mengubah logika layout.
+
+Login dashboard sementara:
+
+```text
+URL      : http://altertemplate.local/login
+Username : admin
+Password : admin
+Dashboard: http://altertemplate.local/admin
+```
+
+Status login demo disimpan di browser. Gunakan tombol `Keluar` pada header dashboard untuk menghapusnya. Login ini khusus development dan harus diganti dengan autentikasi backend sebelum production.
+
 Sebelum commit perubahan frontend:
 
 ```powershell
@@ -194,4 +228,3 @@ docker compose exec backend php artisan migrate:fresh
 ```
 
 Perintah tersebut destruktif. Gunakan hanya pada database development yang boleh dihapus.
-

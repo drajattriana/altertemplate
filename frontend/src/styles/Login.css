@@ -30,9 +30,13 @@
 .login-heading .login-kicker { color:#777970; }
 .login-heading h2 { margin:14px 0 11px; font-size:38px; line-height:1.15; letter-spacing:-.045em; }
 .login-heading > p:last-child { color:#74766f; font-size:14px; }
+.demo-credentials { display:flex; align-items:center; gap:10px; margin:-18px 0 27px; padding:11px 14px; border:1px dashed #b8b6ad; background:rgba(201,255,59,.13); font-size:11px; }
+.demo-credentials span { margin-right:auto; color:#7a7c74; font:500 8px "DM Mono",monospace; letter-spacing:.12em; }
+.demo-credentials strong { font-family:"DM Mono",monospace; }
+.demo-credentials i { color:#a4a69e; font-style:normal; }
 .login-form { display:flex; flex-direction:column; }
 .login-form > label,.password-label label { margin-bottom:9px; font-size:12px; font-weight:700; }
-.login-form input[type="email"],.password-field input { width:100%; height:54px; border:1px solid #c9c7bf; border-radius:0; background:rgba(255,255,255,.44); padding:0 16px; color:var(--ink); font:500 14px "Manrope",sans-serif; outline:none; transition:.2s; }
+.login-form input[type="text"],.password-field input { width:100%; height:54px; border:1px solid #c9c7bf; border-radius:0; background:rgba(255,255,255,.44); padding:0 16px; color:var(--ink); font:500 14px "Manrope",sans-serif; outline:none; transition:.2s; }
 .login-form input:focus { border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,17,15,.08); }
 .login-form input::placeholder { color:#a4a49d; }
 .password-label { display:flex; justify-content:space-between; align-items:center; margin-top:23px; }

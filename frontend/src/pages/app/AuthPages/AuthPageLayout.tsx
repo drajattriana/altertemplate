@@ -1,7 +1,7 @@
 import React from "react";
-import GridShape from "../../components/common/GridShape";
-import { Link } from "react-router";
-import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
+import GridShape from "../../../components/app/common/GridShape";
+import { Link } from "react-router-dom";
+import ThemeTogglerTwo from "../../../components/app/common/ThemeTogglerTwo";
 
 export default function AuthLayout({
   children,

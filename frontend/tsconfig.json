@@ -1,0 +1,49 @@
+// {
+//   "compilerOptions": {
+//     "target": "ES2020",
+//     "useDefineForClassFields": true,
+//     "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+//     "allowJs": true,
+//     "skipLibCheck": true,
+//     "esModuleInterop": true,
+//     "allowSyntheticDefaultImports": true,
+
+//     "strict": true,
+//     "forceConsistentCasingInFileNames": true,
+
+//     "module": "ESNext",
+//     "moduleResolution": "Bundler",
+//     "resolveJsonModule": true,
+//     "isolatedModules": true,
+//     "noEmit": true,
+
+//     "jsx": "react-jsx",
+
+//     "types": ["vite/client"]
+//   },
+
+//   "include": ["src"],
+//   "exclude": [
+//     "node_modules",
+//     "dist",
+//     "src/template-admin"
+//   ]
+// }
+
+{
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "jsx": "react-jsx",
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/template-admin"
+  ]
+}

@@ -12,7 +12,8 @@ export default defineConfig({
     host: '0.0.0.0',    // supaya bisa diakses dari luar container
     port: 5173,         
     watch: {
-      usePolling: true,  
+      usePolling: true,
+      ignored: ['**/src/template-admin/**'],
     },
     allowedHosts: [
       'altertemplate.local',

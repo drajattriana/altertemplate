@@ -186,7 +186,29 @@ layer(base);
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-outfit z-1;
+    background-color: #f3f4f6;
+  }
+
+  #root {
+    min-height: 100vh;
+    background-color: #f3f4f6;
+  }
+
+  main {
+    background-color: #f3f4f6;
+  }
+
+  .dark body,
+  .dark #root,
+  .dark main {
+    background-color: #0c111d;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 14.4px;
   }
 }
 

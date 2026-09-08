@@ -11,13 +11,65 @@ use Illuminate\Validation\ValidationException;
 
 class MenuController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | ICON LOKAL YANG BOLEH DISIMPAN
-    |--------------------------------------------------------------------------
-    */
-
     private const ALLOWED_ICONS = [
+        'alert',
+        'alert-hexa',
+        'angle-down',
+        'angle-left',
+        'angle-right',
+        'angle-up',
+        'arrow-down',
+        'arrow-right',
+        'arrow-up',
+        'audio',
+        'bolt',
+        'box',
+        'box-cube',
+        'box-line',
+        'calendar',
+        'calender-line',
+        'chat',
+        'check-circle',
+        'check-line',
+        'chevron-down',
+        'chevron-left',
+        'chevron-up',
+        'close',
+        'close-line',
+        'copy',
+        'docs',
+        'dollar-line',
+        'download',
+        'envelope',
+        'eye',
+        'eye-close',
+        'file',
+        'folder',
+        'grid',
+        'group',
+        'horizontal-dots',
+        'info',
+        'info-error',
+        'info-hexa',
+        'list',
+        'lock',
+        'mail-line',
+        'moredot',
+        'page',
+        'paper-plane',
+        'pencil',
+        'pie-chart',
+        'plug-in',
+        'plus',
+        'shooting-star',
+        'table',
+        'task-icon',
+        'time',
+        'trash',
+        'user-circle',
+        'user-line',
+        'videos',
+
         'GridIcon',
         'ListIcon',
         'PageIcon',
@@ -29,11 +81,6 @@ class MenuController extends Controller
         'PlugInIcon',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | LIST
-    |--------------------------------------------------------------------------
-    */
 
     public function index(): JsonResponse
     {
@@ -56,20 +103,16 @@ class MenuController extends Controller
                 'menu.id',
                 'menu.parent_id',
                 'parent.name as parent_name',
-
                 'menu.name',
                 'menu.path',
                 'menu.icon',
                 'menu.sort_order',
-
                 'menu.permission_id',
                 'permission.name as permission_name',
                 'permission.slug as permission_slug',
-
                 'menu.badge_key',
                 'menu.is_active',
                 'menu.is_hidden',
-
                 'menu.created_at',
                 'menu.updated_at',
             ])
@@ -88,8 +131,11 @@ class MenuController extends Controller
                     $parentMap
                 );
 
-                $menu->is_active = (bool) $menu->is_active;
-                $menu->is_hidden = (bool) $menu->is_hidden;
+                $menu->is_active =
+                    (bool) $menu->is_active;
+
+                $menu->is_hidden =
+                    (bool) $menu->is_hidden;
 
                 return $menu;
             })
@@ -110,54 +156,74 @@ class MenuController extends Controller
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | CREATE
-    |--------------------------------------------------------------------------
-    |
-    | Ini API POST, BUKAN PAGE CREATE.
-    |
-    */
 
-    public function store(Request $request): JsonResponse
-    {
+    public function store(
+        Request $request
+    ): JsonResponse {
         $this->authorizeMenu();
 
-        $validated = $this->validateMenu($request);
+        $validated =
+            $this->validateMenu(
+                $request
+            );
 
-        $parentId = $validated['parent_id'] ?? null;
+        $parentId =
+            $validated['parent_id']
+            ?? null;
 
-        $this->validateParent($parentId);
+        $this->validateParent(
+            $parentId
+        );
 
         $id = DB::table('auth_menus')
             ->insertGetId([
-                'parent_id' => $parentId,
-                'name' => $validated['name'],
-                'path' => $validated['path'] ?? null,
-                'icon' => $validated['icon'] ?? null,
-                'sort_order' => $validated['sort_order'],
-                'permission_id' => $validated['permission_id'] ?? null,
-                'badge_key' => $validated['badge_key'] ?? null,
-                'is_active' => $validated['is_active'],
-                'is_hidden' => $validated['is_hidden'],
-                'created_at' => now(),
-                'updated_at' => now(),
+                'parent_id' =>
+                    $parentId,
+
+                'name' =>
+                    $validated['name'],
+
+                'path' =>
+                    $validated['path']
+                    ?? null,
+
+                'icon' =>
+                    $validated['icon']
+                    ?? null,
+
+                'sort_order' =>
+                    $validated['sort_order'],
+
+                'permission_id' =>
+                    $validated['permission_id']
+                    ?? null,
+
+                'badge_key' =>
+                    $validated['badge_key']
+                    ?? null,
+
+                'is_active' =>
+                    $validated['is_active'],
+
+                'is_hidden' =>
+                    $validated['is_hidden'],
+
+                'created_at' =>
+                    now(),
+
+                'updated_at' =>
+                    now(),
             ]);
 
         return response()->json([
-            'message' => 'Menu berhasil ditambahkan.',
-            'id' => $id,
+            'message' =>
+                'Menu berhasil ditambahkan.',
+
+            'id' =>
+                $id,
         ], 201);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE
-    |--------------------------------------------------------------------------
-    |
-    | Ini API PUT, BUKAN PAGE UPDATE.
-    |
-    */
 
     public function update(
         Request $request,
@@ -171,16 +237,20 @@ class MenuController extends Controller
 
         if (!$menu) {
             return response()->json([
-                'message' => 'Menu tidak ditemukan.',
+                'message' =>
+                    'Menu tidak ditemukan.',
             ], 404);
         }
 
-        $validated = $this->validateMenu(
-            $request,
-            $id
-        );
+        $validated =
+            $this->validateMenu(
+                $request,
+                $id
+            );
 
-        $parentId = $validated['parent_id'] ?? null;
+        $parentId =
+            $validated['parent_id']
+            ?? null;
 
         $this->validateParent(
             $parentId,
@@ -195,31 +265,51 @@ class MenuController extends Controller
         DB::table('auth_menus')
             ->where('id', $id)
             ->update([
-                'parent_id' => $parentId,
-                'name' => $validated['name'],
-                'path' => $validated['path'] ?? null,
-                'icon' => $validated['icon'] ?? null,
-                'sort_order' => $validated['sort_order'],
-                'permission_id' => $validated['permission_id'] ?? null,
-                'badge_key' => $validated['badge_key'] ?? null,
-                'is_active' => $validated['is_active'],
-                'is_hidden' => $validated['is_hidden'],
-                'updated_at' => now(),
+                'parent_id' =>
+                    $parentId,
+
+                'name' =>
+                    $validated['name'],
+
+                'path' =>
+                    $validated['path']
+                    ?? null,
+
+                'icon' =>
+                    $validated['icon']
+                    ?? null,
+
+                'sort_order' =>
+                    $validated['sort_order'],
+
+                'permission_id' =>
+                    $validated['permission_id']
+                    ?? null,
+
+                'badge_key' =>
+                    $validated['badge_key']
+                    ?? null,
+
+                'is_active' =>
+                    $validated['is_active'],
+
+                'is_hidden' =>
+                    $validated['is_hidden'],
+
+                'updated_at' =>
+                    now(),
             ]);
 
         return response()->json([
-            'message' => 'Menu berhasil diperbarui.',
+            'message' =>
+                'Menu berhasil diperbarui.',
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | DELETE
-    |--------------------------------------------------------------------------
-    */
 
-    public function destroy(int $id): JsonResponse
-    {
+    public function destroy(
+        int $id
+    ): JsonResponse {
         $this->authorizeMenu();
 
         $menu = DB::table('auth_menus')
@@ -228,13 +318,18 @@ class MenuController extends Controller
 
         if (!$menu) {
             return response()->json([
-                'message' => 'Menu tidak ditemukan.',
+                'message' =>
+                    'Menu tidak ditemukan.',
             ], 404);
         }
 
-        $hasChildren = DB::table('auth_menus')
-            ->where('parent_id', $id)
-            ->exists();
+        $hasChildren =
+            DB::table('auth_menus')
+                ->where(
+                    'parent_id',
+                    $id
+                )
+                ->exists();
 
         if ($hasChildren) {
             throw ValidationException::withMessages([
@@ -249,15 +344,11 @@ class MenuController extends Controller
             ->delete();
 
         return response()->json([
-            'message' => 'Menu berhasil dihapus.',
+            'message' =>
+                'Menu berhasil dihapus.',
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATION
-    |--------------------------------------------------------------------------
-    */
 
     private function validateMenu(
         Request $request,
@@ -281,6 +372,7 @@ class MenuController extends Controller
                 'string',
                 'max:255',
                 'regex:/^\//',
+
                 Rule::unique(
                     'auth_menus',
                     'path'
@@ -290,7 +382,10 @@ class MenuController extends Controller
             'icon' => [
                 'nullable',
                 'string',
-                Rule::in(self::ALLOWED_ICONS),
+
+                Rule::in(
+                    self::ALLOWED_ICONS
+                ),
             ],
 
             'sort_order' => [
@@ -324,11 +419,6 @@ class MenuController extends Controller
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PARENT VALIDATION
-    |--------------------------------------------------------------------------
-    */
 
     private function validateParent(
         ?int $parentId,
@@ -363,9 +453,10 @@ class MenuController extends Controller
             ]);
         }
 
-        $parentLevel = $this->getMenuLevel(
-            $parentId
-        );
+        $parentLevel =
+            $this->getMenuLevel(
+                $parentId
+            );
 
         if ($parentLevel >= 3) {
             throw ValidationException::withMessages([
@@ -376,23 +467,22 @@ class MenuController extends Controller
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | TREE DEPTH
-    |--------------------------------------------------------------------------
-    */
 
     private function validateTreeDepth(
         int $menuId,
         ?int $parentId
     ): void {
-        $newLevel = $parentId === null
-            ? 1
-            : $this->getMenuLevel($parentId) + 1;
+        $newLevel =
+            $parentId === null
+                ? 1
+                : $this->getMenuLevel(
+                    $parentId
+                ) + 1;
 
-        $subtreeHeight = $this->getSubtreeHeight(
-            $menuId
-        );
+        $subtreeHeight =
+            $this->getSubtreeHeight(
+                $menuId
+            );
 
         $maximumLevel =
             $newLevel +
@@ -408,64 +498,112 @@ class MenuController extends Controller
         }
     }
 
+
     private function isDescendant(
         int $candidateParentId,
         int $menuId
     ): bool {
-        $currentId = $candidateParentId;
+        $currentId =
+            $candidateParentId;
+
         $visited = [];
 
         while ($currentId !== null) {
-            if ($currentId === $menuId) {
+            if (
+                $currentId ===
+                $menuId
+            ) {
                 return true;
             }
 
-            if (isset($visited[$currentId])) {
+            if (
+                isset(
+                    $visited[
+                        $currentId
+                    ]
+                )
+            ) {
                 return true;
             }
 
-            $visited[$currentId] = true;
+            $visited[
+                $currentId
+            ] = true;
 
-            $currentId = DB::table('auth_menus')
-                ->where('id', $currentId)
-                ->value('parent_id');
+            $currentId =
+                DB::table('auth_menus')
+                    ->where(
+                        'id',
+                        $currentId
+                    )
+                    ->value(
+                        'parent_id'
+                    );
         }
 
         return false;
     }
 
-    private function getMenuLevel(int $menuId): int
-    {
+
+    private function getMenuLevel(
+        int $menuId
+    ): int {
         $level = 1;
 
-        $parentId = DB::table('auth_menus')
-            ->where('id', $menuId)
-            ->value('parent_id');
+        $parentId =
+            DB::table('auth_menus')
+                ->where(
+                    'id',
+                    $menuId
+                )
+                ->value(
+                    'parent_id'
+                );
 
         $visited = [];
 
         while ($parentId !== null) {
-            if (isset($visited[$parentId])) {
+            if (
+                isset(
+                    $visited[
+                        $parentId
+                    ]
+                )
+            ) {
                 break;
             }
 
-            $visited[$parentId] = true;
+            $visited[
+                $parentId
+            ] = true;
 
             $level++;
 
-            $parentId = DB::table('auth_menus')
-                ->where('id', $parentId)
-                ->value('parent_id');
+            $parentId =
+                DB::table('auth_menus')
+                    ->where(
+                        'id',
+                        $parentId
+                    )
+                    ->value(
+                        'parent_id'
+                    );
         }
 
         return $level;
     }
 
-    private function getSubtreeHeight(int $menuId): int
-    {
-        $children = DB::table('auth_menus')
-            ->where('parent_id', $menuId)
-            ->pluck('id');
+
+    private function getSubtreeHeight(
+        int $menuId
+    ): int {
+        $children =
+            DB::table('auth_menus')
+                ->where(
+                    'parent_id',
+                    $menuId
+                )
+                ->pluck('id');
 
         if ($children->isEmpty()) {
             return 1;
@@ -473,9 +611,12 @@ class MenuController extends Controller
 
         $maxHeight = 0;
 
-        foreach ($children as $childId) {
+        foreach (
+            $children as $childId
+        ) {
             $maxHeight = max(
                 $maxHeight,
+
                 $this->getSubtreeHeight(
                     (int) $childId
                 )
@@ -485,62 +626,78 @@ class MenuController extends Controller
         return 1 + $maxHeight;
     }
 
+
     private function calculateLevel(
         int $menuId,
         array $parentMap
     ): int {
         $level = 1;
-        $parentId = $parentMap[$menuId] ?? null;
+
+        $parentId =
+            $parentMap[
+                $menuId
+            ] ?? null;
 
         $visited = [];
 
         while ($parentId !== null) {
-            if (isset($visited[$parentId])) {
+            if (
+                isset(
+                    $visited[
+                        $parentId
+                    ]
+                )
+            ) {
                 break;
             }
 
-            $visited[$parentId] = true;
+            $visited[
+                $parentId
+            ] = true;
 
             $level++;
 
-            $parentId = $parentMap[$parentId] ?? null;
+            $parentId =
+                $parentMap[
+                    $parentId
+                ] ?? null;
         }
 
         return $level;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SATU PERMISSION UNTUK CRUD MENU
-    |--------------------------------------------------------------------------
-    */
 
     private function authorizeMenu(): void
     {
-        $user = auth('api')->user();
+        $user =
+            auth('api')->user();
 
         if (!$user) {
-            abort(401, 'Unauthenticated');
+            abort(
+                401,
+                'Unauthenticated'
+            );
         }
 
-        $allowed = DB::table(
-            'auth_role_permissions as rp'
-        )
-            ->join(
-                'auth_permissions as permission',
-                'permission.id',
-                '=',
-                'rp.permission_id'
+        $allowed =
+            DB::table(
+                'auth_role_permissions as rp'
             )
-            ->where(
-                'rp.role_id',
-                $user->role_id
-            )
-            ->where(
-                'permission.slug',
-                'superadmin.menu'
-            )
-            ->exists();
+                ->join(
+                    'auth_permissions as permission',
+                    'permission.id',
+                    '=',
+                    'rp.permission_id'
+                )
+                ->where(
+                    'rp.role_id',
+                    $user->role_id
+                )
+                ->where(
+                    'permission.slug',
+                    'superadmin.menu'
+                )
+                ->exists();
 
         if (!$allowed) {
             abort(

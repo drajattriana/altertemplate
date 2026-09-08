@@ -26,7 +26,7 @@ export const MENU_ICON_OPTIONS = [
   },
   {
     value: "UserCircleIcon",
-    label: "User Circle",
+    label: "User",
   },
   {
     value: "TableIcon",
@@ -34,7 +34,7 @@ export const MENU_ICON_OPTIONS = [
   },
   {
     value: "BoxCubeIcon",
-    label: "Box Cube",
+    label: "Box",
   },
   {
     value: "CalenderIcon",
@@ -52,7 +52,7 @@ export const MENU_ICON_OPTIONS = [
 
 
 type MenuIconProps = {
-  name?: string | null;
+  name: string | null | undefined;
   className?: string;
 };
 
@@ -63,31 +63,67 @@ export function MenuIcon({
 }: MenuIconProps) {
   switch (name) {
     case "GridIcon":
-      return <GridIcon className={className} />;
+      return (
+        <GridIcon
+          className={className}
+        />
+      );
 
     case "ListIcon":
-      return <ListIcon className={className} />;
+      return (
+        <ListIcon
+          className={className}
+        />
+      );
 
     case "PageIcon":
-      return <PageIcon className={className} />;
+      return (
+        <PageIcon
+          className={className}
+        />
+      );
 
     case "UserCircleIcon":
-      return <UserCircleIcon className={className} />;
+      return (
+        <UserCircleIcon
+          className={className}
+        />
+      );
 
     case "TableIcon":
-      return <TableIcon className={className} />;
+      return (
+        <TableIcon
+          className={className}
+        />
+      );
 
     case "BoxCubeIcon":
-      return <BoxCubeIcon className={className} />;
+      return (
+        <BoxCubeIcon
+          className={className}
+        />
+      );
 
     case "CalenderIcon":
-      return <CalenderIcon className={className} />;
+      return (
+        <CalenderIcon
+          className={className}
+        />
+      );
 
     case "PieChartIcon":
-      return <PieChartIcon className={className} />;
+      return (
+        <PieChartIcon
+          className={className}
+        />
+      );
 
     case "PlugInIcon":
-      return <PlugInIcon className={className} />;
+      return (
+        <PlugInIcon
+          className={className}
+        />
+      );
 
     default:
       return null;

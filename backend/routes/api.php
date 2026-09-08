@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AuthNotificationController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\SidebarController;
 
@@ -50,6 +51,20 @@ Route::prefix('auth')->group(function () {
             [MenuController::class, 'destroy']
         );
 
+        // Notification
+        Route::get(
+            '/notifications',
+            [
+                AuthNotificationController::class,
+                'index',
+            ]
+        );
+        Route::get(
+            '/notifications/badges',
+            [
+                AuthNotificationController::class,
+                'badges',
+            ]
+        );
     });
-
 });

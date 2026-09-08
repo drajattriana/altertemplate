@@ -97,39 +97,12 @@ class AuthMenuSeeder extends Seeder
             'superadmin.dashboard'
         );
 
-        $menuParent = $saveMenu(
-            'Menu',
-            $superadminRoot,
-            null,
-            'ListIcon',
-            2,
-            'superadmin.menu'
-        );
-
-        $saveMenu(
-            'Tambah Menu',
-            $menuParent,
-            '/superadmin/menu/create',
-            null,
-            1,
-            'superadmin.menu.create'
-        );
-
-        $saveMenu(
-            'List Menu',
-            $menuParent,
-            '/superadmin/menu',
-            null,
-            2,
-            'superadmin.menu.list'
-        );
-
         $saveMenu(
             'Roles',
             $superadminRoot,
             '/superadmin/roles',
             'UserCircleIcon',
-            3,
+            2,
             'superadmin.roles'
         );
 
@@ -138,9 +111,36 @@ class AuthMenuSeeder extends Seeder
             $superadminRoot,
             '/superadmin/permissions',
             'PageIcon',
-            4,
+            3,
             'superadmin.permissions'
         );
+
+        $menuParent = $saveMenu(
+            'Menu',
+            $superadminRoot,
+            '/superadmin/menu',
+            'ListIcon',
+            4,
+            'superadmin.menu'
+        );
+
+        // $saveMenu(
+        //     'Tambah Menu',
+        //     $menuParent,
+        //     '/superadmin/menu/create',
+        //     null,
+        //     1,
+        //     'superadmin.menu.create'
+        // );
+
+        // $saveMenu(
+        //     'List Menu',
+        //     $menuParent,
+        //     '/superadmin/menu',
+        //     null,
+        //     2,
+        //     'superadmin.menu.list'
+        // );
 
 
         /*

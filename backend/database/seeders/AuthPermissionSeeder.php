@@ -26,14 +26,6 @@ class AuthPermissionSeeder extends Seeder
                 'slug' => 'superadmin.menu',
             ],
             [
-                'name' => 'Create Menu',
-                'slug' => 'superadmin.menu.create',
-            ],
-            [
-                'name' => 'List Menu',
-                'slug' => 'superadmin.menu.list',
-            ],
-            [
                 'name' => 'Roles Management',
                 'slug' => 'superadmin.roles',
             ],
@@ -53,19 +45,71 @@ class AuthPermissionSeeder extends Seeder
             ],
         ];
 
-        $rows = array_map(function ($permission) use ($now) {
-            return [
-                'name' => $permission['name'],
-                'slug' => $permission['slug'],
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
-        }, $permissions);
+        $rows = array_map(
+            function ($permission) use ($now) {
+                return [
+                    'name' => $permission['name'],
+                    'slug' => $permission['slug'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            },
+            $permissions
+        );
 
         DB::table('auth_permissions')->upsert(
             $rows,
             ['slug'],
             ['name', 'updated_at']
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | HAPUS PERMISSION MENU MODEL LAMA
+        |--------------------------------------------------------------------------
+        |
+        | Kita sekarang hanya menggunakan:
+        | superadmin.menu
+        |
+        */
+
+        $menuPermissionId = DB::table('auth_permissions')
+            ->where('slug', 'superadmin.menu')
+            ->value('id');
+
+        $obsoletePermissionIds = DB::table('auth_permissions')
+            ->whereIn('slug', [
+                'superadmin.menu.create',
+                'superadmin.menu.list',
+                'superadmin.menu.update',
+                'superadmin.menu.delete',
+            ])
+            ->pluck('id');
+
+        if ($obsoletePermissionIds->isNotEmpty()) {
+            /*
+             * Kalau ada menu lama yang memakai permission lama,
+             * pindahkan ke superadmin.menu terlebih dahulu.
+             */
+            DB::table('auth_menus')
+                ->whereIn('permission_id', $obsoletePermissionIds)
+                ->update([
+                    'permission_id' => $menuPermissionId,
+                ]);
+
+            /*
+             * Hapus relasi role permission lama.
+             */
+            DB::table('auth_role_permissions')
+                ->whereIn('permission_id', $obsoletePermissionIds)
+                ->delete();
+
+            /*
+             * Baru hapus permission lama.
+             */
+            DB::table('auth_permissions')
+                ->whereIn('id', $obsoletePermissionIds)
+                ->delete();
+        }
     }
 }

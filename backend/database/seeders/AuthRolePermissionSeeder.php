@@ -10,20 +10,24 @@ class AuthRolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->syncPermissions('superadmin', [
-            'superadmin.access',
-            'superadmin.dashboard',
-            'superadmin.menu',
-            'superadmin.menu.create',
-            'superadmin.menu.list',
-            'superadmin.roles',
-            'superadmin.permissions',
-        ]);
+        $this->syncPermissions(
+            'superadmin',
+            [
+                'superadmin.access',
+                'superadmin.dashboard',
+                'superadmin.menu',
+                'superadmin.roles',
+                'superadmin.permissions',
+            ]
+        );
 
-        $this->syncPermissions('admin', [
-            'admin.access',
-            'admin.dashboard',
-        ]);
+        $this->syncPermissions(
+            'admin',
+            [
+                'admin.access',
+                'admin.dashboard',
+            ]
+        );
     }
 
     private function syncPermissions(
@@ -44,6 +48,8 @@ class AuthRolePermissionSeeder extends Seeder
             ->whereIn('slug', $permissionSlugs)
             ->pluck('id')
             ->all();
+
+       
 
         DB::table('auth_role_permissions')
             ->where('role_id', $roleId)

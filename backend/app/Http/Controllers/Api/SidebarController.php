@@ -14,49 +14,69 @@ class SidebarController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Unauthenticated',
+                'message' => 'Unauthenticated.',
             ], 401);
         }
 
         $permissionIds = DB::table('auth_role_permissions')
             ->where('role_id', $user->role_id)
-            ->pluck('permission_id');
+            ->pluck('permission_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if (empty($permissionIds)) {
+            return response()->json([
+                'menus' => [],
+            ]);
+        }
 
         $menus = DB::table('auth_menus')
             ->where('is_active', true)
             ->where('is_hidden', false)
-            ->where(function ($query) use ($permissionIds) {
-                $query
-                    ->whereNull('permission_id')
-                    ->orWhereIn('permission_id', $permissionIds);
-            })
+            ->whereNotNull('permission_id')
+            ->whereIn('permission_id', $permissionIds)
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get();
+            ->get([
+                'id',
+                'parent_id',
+                'name',
+                'path',
+                'icon',
+                'sort_order',
+                'permission_id',
+                'badge_key',
+            ]);
 
-        $buildTree = function ($parentId = null) use (
-            &$buildTree,
-            $menus
-        ) {
-            return $menus
-                ->filter(function ($menu) use ($parentId) {
-                    if ($parentId === null) {
-                        return $menu->parent_id === null;
-                    }
+        $grouped = $menus->groupBy(function ($menu) {
+            return $menu->parent_id === null
+                ? 'root'
+                : (string) $menu->parent_id;
+        });
 
-                    return (int) $menu->parent_id === (int) $parentId;
-                })
+        $buildTree = function (
+            ?int $parentId
+        ) use (&$buildTree, $grouped): array {
+            $key = $parentId === null
+                ? 'root'
+                : (string) $parentId;
+
+            $items = $grouped->get(
+                $key,
+                collect()
+            );
+
+            return $items
                 ->map(function ($menu) use (&$buildTree) {
                     return [
-                        'id' => $menu->id,
+                        'id' => (int) $menu->id,
                         'name' => $menu->name,
                         'path' => $menu->path,
                         'icon' => $menu->icon,
-                        'sort_order' => $menu->sort_order,
+                        'sort_order' => (int) $menu->sort_order,
                         'badge_key' => $menu->badge_key,
-
                         'children' => $buildTree(
-                            $menu->id
+                            (int) $menu->id
                         ),
                     ];
                 })
@@ -65,7 +85,7 @@ class SidebarController extends Controller
         };
 
         return response()->json([
-            'menus' => $buildTree(),
+            'menus' => $buildTree(null),
         ]);
     }
 }

@@ -25,10 +25,26 @@ export type SidebarMenu = {
   badge_key: string | null;
   children: SidebarMenu[];
 };
+
+const getActiveStorage = (): Storage | null => {
+  if (localStorage.getItem(TOKEN_KEY)) {
+    return localStorage;
+  }
+
+  if (sessionStorage.getItem(TOKEN_KEY)) {
+    return sessionStorage;
+  }
+
+  return null;
+};
+
 export const saveSidebar = (
   menus: SidebarMenu[],
   remember: boolean
 ) => {
+  localStorage.removeItem(SIDEBAR_KEY);
+  sessionStorage.removeItem(SIDEBAR_KEY);
+
   const storage = remember
     ? localStorage
     : sessionStorage;
@@ -38,23 +54,26 @@ export const saveSidebar = (
     JSON.stringify(menus)
   );
 };
+
 export const getSidebar = (): SidebarMenu[] => {
-  const raw =
-    localStorage.getItem(SIDEBAR_KEY) ||
-    sessionStorage.getItem(SIDEBAR_KEY);
+  const storage = getActiveStorage();
+
+  if (!storage) {
+    return [];
+  }
+
+  const raw = storage.getItem(SIDEBAR_KEY);
 
   if (!raw) {
     return [];
   }
 
   try {
-    return JSON.parse(raw);
+    return JSON.parse(raw) as SidebarMenu[];
   } catch {
     return [];
   }
 };
-
-
 
 export const saveAuth = (
   token: string,
@@ -68,20 +87,30 @@ export const saveAuth = (
     : sessionStorage;
 
   storage.setItem(TOKEN_KEY, token);
-  storage.setItem(USER_KEY, JSON.stringify(user));
-};
-
-export const getToken = (): string | null => {
-  return (
-    localStorage.getItem(TOKEN_KEY) ||
-    sessionStorage.getItem(TOKEN_KEY)
+  storage.setItem(
+    USER_KEY,
+    JSON.stringify(user)
   );
 };
 
+export const getToken = (): string | null => {
+  const storage = getActiveStorage();
+
+  if (!storage) {
+    return null;
+  }
+
+  return storage.getItem(TOKEN_KEY);
+};
+
 export const getAuthUser = (): AuthUser | null => {
-  const raw =
-    localStorage.getItem(USER_KEY) ||
-    sessionStorage.getItem(USER_KEY);
+  const storage = getActiveStorage();
+
+  if (!storage) {
+    return null;
+  }
+
+  const raw = storage.getItem(USER_KEY);
 
   if (!raw) {
     return null;
@@ -97,11 +126,10 @@ export const getAuthUser = (): AuthUser | null => {
 export const clearAuth = () => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(SIDEBAR_KEY);
 
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USER_KEY);
-
-  localStorage.removeItem(SIDEBAR_KEY);
   sessionStorage.removeItem(SIDEBAR_KEY);
 };
 

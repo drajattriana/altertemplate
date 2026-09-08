@@ -1,11 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import {
-  ChevronLeftIcon,
-  EyeCloseIcon,
-  EyeIcon,
-} from "../../../icons";
+import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../../icons";
 
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -16,6 +12,7 @@ import {
   getAuthUser,
   isAuthenticated,
   saveAuth,
+  saveSidebar,
 } from "../../../utils/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -46,67 +43,67 @@ export default function SignInForm() {
     }
   }, [navigate]);
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setMessage("");
 
     if (!username.trim() || !password) {
-      setMessage(
-        "Lengkapi username dan kata sandi terlebih dahulu."
-      );
+      setMessage("Lengkapi username dan kata sandi terlebih dahulu.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            username: username.trim(),
-            password,
-            remember: isChecked,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          password,
+          remember: isChecked,
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
         setMessage(
-          data.message ||
-            "Login gagal. Username atau kata sandi salah."
+          data.message || "Login gagal. Username atau kata sandi salah.",
         );
         return;
       }
 
-      saveAuth(
-        data.access_token,
-        data.user,
-        isChecked
-      );
+      saveAuth(data.access_token, data.user, isChecked);
 
-      navigate(
-        data.user.redirect_path,
-        {
-          replace: true,
-        }
-      );
+      const sidebarResponse = await fetch(`${API_URL}/auth/sidebar`, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${data.access_token}`,
+        },
+      });
+
+      if (!sidebarResponse.ok) {
+        throw new Error("Gagal mengambil menu sidebar.");
+      }
+
+      const sidebarData = await sidebarResponse.json();
+
+      saveSidebar(sidebarData.menus ?? [], isChecked);
+
+      navigate(data.user.redirect_path, { replace: true });
+
+      navigate(data.user.redirect_path, {
+        replace: true,
+      });
     } catch (error) {
       console.error(error);
 
-      setMessage(
-        "Tidak dapat terhubung ke server."
-      );
+      setMessage("Tidak dapat terhubung ke server.");
     } finally {
       setLoading(false);
     }
@@ -205,8 +202,7 @@ export default function SignInForm() {
               <div className="space-y-6">
                 <div>
                   <Label>
-                    Username{" "}
-                    <span className="text-error-500">*</span>
+                    Username <span className="text-error-500">*</span>
                   </Label>
 
                   <Input
@@ -222,8 +218,7 @@ export default function SignInForm() {
 
                 <div>
                   <Label>
-                    Password{" "}
-                    <span className="text-error-500">*</span>
+                    Password <span className="text-error-500">*</span>
                   </Label>
 
                   <div className="relative">
@@ -238,9 +233,7 @@ export default function SignInForm() {
                     />
 
                     <span
-                      onClick={() =>
-                        setShowPassword((current) => !current)
-                      }
+                      onClick={() => setShowPassword((current) => !current)}
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                     >
                       {showPassword ? (
@@ -254,10 +247,7 @@ export default function SignInForm() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={isChecked}
-                      onChange={setIsChecked}
-                    />
+                    <Checkbox checked={isChecked} onChange={setIsChecked} />
 
                     <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
                       Keep me logged in
@@ -282,11 +272,7 @@ export default function SignInForm() {
                 )}
 
                 <div>
-                  <Button
-                    className="w-full"
-                    size="sm"
-                    disabled={loading}
-                  >
+                  <Button className="w-full" size="sm" disabled={loading}>
                     {loading ? "Memproses..." : "Sign in"}
                   </Button>
                 </div>

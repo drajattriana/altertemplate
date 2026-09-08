@@ -1,6 +1,13 @@
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+} from "react-router-dom";
 
 import {
   ChevronDownIcon,
@@ -13,11 +20,19 @@ import {
 
 import { useSidebar } from "../../context/SidebarContext";
 
-import { clearAuth, getAuthUser, getToken } from "../../utils/auth";
+import {
+  getAuthUser,
+  getSidebar,
+} from "../../utils/auth";
 
 import SidebarWidget from "./SidebarWidget";
 
-const API_URL = import.meta.env.VITE_API_URL;
+
+/*
+|--------------------------------------------------------------------------
+| TYPE MENU
+|--------------------------------------------------------------------------
+*/
 
 type MenuItem = {
   id: number;
@@ -29,28 +44,54 @@ type MenuItem = {
   children: MenuItem[];
 };
 
-const menuIsActive = (menu: MenuItem, pathname: string): boolean => {
+
+/*
+|--------------------------------------------------------------------------
+| CHECK MENU ACTIVE
+|--------------------------------------------------------------------------
+*/
+
+const menuIsActive = (
+  menu: MenuItem,
+  pathname: string
+): boolean => {
   if (menu.path === pathname) {
     return true;
   }
 
-  return menu.children.some((child) => menuIsActive(child, pathname));
+  return menu.children.some((child) =>
+    menuIsActive(child, pathname)
+  );
 };
+
+
+/*
+|--------------------------------------------------------------------------
+| CARI PARENT DARI ROUTE ACTIVE
+|--------------------------------------------------------------------------
+*/
 
 const findActiveTrail = (
   items: MenuItem[],
   pathname: string,
-  trail: number[] = [],
+  trail: number[] = []
 ): number[] | null => {
   for (const item of items) {
-    const currentTrail = [...trail, item.id];
+    const currentTrail = [
+      ...trail,
+      item.id,
+    ];
 
     if (item.path === pathname) {
       return currentTrail;
     }
 
     if (item.children.length > 0) {
-      const result = findActiveTrail(item.children, pathname, currentTrail);
+      const result = findActiveTrail(
+        item.children,
+        pathname,
+        currentTrail
+      );
 
       if (result) {
         return result;
@@ -61,94 +102,71 @@ const findActiveTrail = (
   return null;
 };
 
+
+/*
+|--------------------------------------------------------------------------
+| APP SIDEBAR
+|--------------------------------------------------------------------------
+*/
+
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const {
+    isExpanded,
+    isMobileOpen,
+    isHovered,
+    setIsHovered,
+  } = useSidebar();
 
   const location = useLocation();
-  const navigate = useNavigate();
 
-  const [menus, setMenus] = useState<MenuItem[]>([]);
+  /*
+  |--------------------------------------------------------------------------
+  | AMBIL SIDEBAR DARI STORAGE
+  |--------------------------------------------------------------------------
+  |
+  | Tidak request API.
+  | Sidebar sudah disimpan ketika login.
+  |
+  */
 
-  const [openMenus, setOpenMenus] = useState<Record<number, boolean>>({});
+  const [menus] = useState<MenuItem[]>(
+    () => getSidebar()
+  );
 
-  const [loading, setLoading] = useState(true);
 
-  const [error, setError] = useState("");
+  /*
+  |--------------------------------------------------------------------------
+  | OPEN SUBMENU
+  |--------------------------------------------------------------------------
+  */
+
+  const [openMenus, setOpenMenus] =
+    useState<Record<number, boolean>>({});
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | USER
+  |--------------------------------------------------------------------------
+  */
 
   const user = getAuthUser();
 
-  const homePath = user?.redirect_path ?? "/";
+  const homePath =
+    user?.redirect_path ?? "/";
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | AUTO OPEN PARENT BERDASARKAN URL
+  |--------------------------------------------------------------------------
+  */
 
   useEffect(() => {
-    let mounted = true;
-
-    const loadMenus = async () => {
-      const token = getToken();
-
-      if (!token) {
-        clearAuth();
-
-        navigate("/login", {
-          replace: true,
-        });
-
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError("");
-
-        const response = await fetch(`${API_URL}/auth/sidebar`, {
-          method: "GET",
-
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.status === 401) {
-          clearAuth();
-
-          navigate("/login", {
-            replace: true,
-          });
-
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error("Gagal mengambil sidebar");
-        }
-
-        const data = await response.json();
-
-        if (mounted) {
-          setMenus(data.menus ?? []);
-        }
-      } catch (err) {
-        console.error(err);
-
-        if (mounted) {
-          setError("Gagal memuat menu");
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadMenus();
-
-    return () => {
-      mounted = false;
-    };
-  }, [navigate]);
-
-  useEffect(() => {
-    const trail = findActiveTrail(menus, location.pathname);
+    const trail = findActiveTrail(
+      menus,
+      location.pathname
+    );
 
     if (!trail) {
       return;
@@ -159,22 +177,49 @@ const AppSidebar: React.FC = () => {
         ...previous,
       };
 
-      trail.slice(0, -1).forEach((id) => {
-        next[id] = true;
-      });
+      /*
+       * Leaf terakhir tidak perlu dibuka.
+       * Yang dibuka hanya parent-nya.
+       */
+      trail
+        .slice(0, -1)
+        .forEach((id) => {
+          next[id] = true;
+        });
 
       return next;
     });
-  }, [menus, location.pathname]);
+  }, [
+    menus,
+    location.pathname,
+  ]);
 
-  const toggleMenu = (id: number) => {
+
+  /*
+  |--------------------------------------------------------------------------
+  | TOGGLE MENU
+  |--------------------------------------------------------------------------
+  */
+
+  const toggleMenu = (
+    id: number
+  ) => {
     setOpenMenus((previous) => ({
       ...previous,
       [id]: !previous[id],
     }));
   };
 
-  const renderIcon = (iconName: string | null): ReactNode => {
+
+  /*
+  |--------------------------------------------------------------------------
+  | ICON DATABASE -> ICON TEMPLATE
+  |--------------------------------------------------------------------------
+  */
+
+  const renderIcon = (
+    iconName: string | null
+  ): ReactNode => {
     switch (iconName) {
       case "GridIcon":
         return <GridIcon />;
@@ -193,29 +238,67 @@ const AppSidebar: React.FC = () => {
     }
   };
 
-  const renderMenuItems = (items: MenuItem[], level = 0): ReactNode => {
+
+  /*
+  |--------------------------------------------------------------------------
+  | RENDER MENU RECURSIVE
+  |--------------------------------------------------------------------------
+  */
+
+  const renderMenuItems = (
+    items: MenuItem[],
+    level = 0
+  ): ReactNode => {
     return (
-      <ul className={level === 0 ? "flex flex-col gap-4" : "mt-2 space-y-1"}>
+      <ul
+        className={
+          level === 0
+            ? "flex flex-col gap-4"
+            : "mt-2 space-y-1"
+        }
+      >
         {items.map((menu) => {
-          const hasChildren = menu.children.length > 0;
+          const hasChildren =
+            menu.children.length > 0;
 
-          const active = menuIsActive(menu, location.pathname);
+          const active =
+            menuIsActive(
+              menu,
+              location.pathname
+            );
 
-          const open = openMenus[menu.id] ?? false;
+          const open =
+            openMenus[menu.id] ?? false;
 
-          const showText = isExpanded || isHovered || isMobileOpen;
+          const showText =
+            isExpanded ||
+            isHovered ||
+            isMobileOpen;
+
+
+          /*
+          |--------------------------------------------------------------------------
+          | MENU UTAMA
+          |--------------------------------------------------------------------------
+          */
 
           if (level === 0) {
             return (
               <li key={menu.id}>
+
                 {hasChildren ? (
                   <button
                     type="button"
-                    onClick={() => toggleMenu(menu.id)}
+                    onClick={() =>
+                      toggleMenu(menu.id)
+                    }
                     className={`menu-item group w-full ${
-                      active ? "menu-item-active" : "menu-item-inactive"
+                      active
+                        ? "menu-item-active"
+                        : "menu-item-inactive"
                     } cursor-pointer ${
-                      !isExpanded && !isHovered
+                      !isExpanded &&
+                      !isHovered
                         ? "lg:justify-center"
                         : "lg:justify-start"
                     }`}
@@ -231,13 +314,17 @@ const AppSidebar: React.FC = () => {
                     </span>
 
                     {showText && (
-                      <span className="menu-item-text">{menu.name}</span>
+                      <span className="menu-item-text">
+                        {menu.name}
+                      </span>
                     )}
 
                     {showText && (
                       <ChevronDownIcon
                         className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                          open ? "rotate-180 text-brand-500" : ""
+                          open
+                            ? "rotate-180 text-brand-500"
+                            : ""
                         }`}
                       />
                     )}
@@ -247,7 +334,9 @@ const AppSidebar: React.FC = () => {
                     <Link
                       to={menu.path}
                       className={`menu-item group ${
-                        active ? "menu-item-active" : "menu-item-inactive"
+                        active
+                          ? "menu-item-active"
+                          : "menu-item-inactive"
                       }`}
                     >
                       <span
@@ -261,46 +350,69 @@ const AppSidebar: React.FC = () => {
                       </span>
 
                       {showText && (
-                        <span className="menu-item-text">{menu.name}</span>
+                        <span className="menu-item-text">
+                          {menu.name}
+                        </span>
                       )}
                     </Link>
                   )
                 )}
 
+
                 {hasChildren && (
                   <div
                     className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-                      open && showText ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                      open && showText
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
                     }`}
                   >
                     <div className="overflow-hidden">
                       <div className="ml-9">
-                        {renderMenuItems(menu.children, level + 1)}
+                        {renderMenuItems(
+                          menu.children,
+                          level + 1
+                        )}
                       </div>
                     </div>
                   </div>
                 )}
+
               </li>
             );
           }
 
+
+          /*
+          |--------------------------------------------------------------------------
+          | SUBMENU LEVEL 2, LEVEL 3, DST
+          |--------------------------------------------------------------------------
+          */
+
           return (
             <li key={menu.id}>
+
               {hasChildren ? (
                 <button
                   type="button"
-                  onClick={() => toggleMenu(menu.id)}
+                  onClick={() =>
+                    toggleMenu(menu.id)
+                  }
                   className={`menu-dropdown-item w-full ${
                     active
                       ? "menu-dropdown-item-active"
                       : "menu-dropdown-item-inactive"
                   }`}
                 >
-                  <span>{menu.name}</span>
+                  <span>
+                    {menu.name}
+                  </span>
 
                   <ChevronDownIcon
                     className={`ml-auto w-4 h-4 transition-transform duration-200 ${
-                      open ? "rotate-180 text-brand-500" : ""
+                      open
+                        ? "rotate-180 text-brand-500"
+                        : ""
                     }`}
                   />
                 </button>
@@ -319,25 +431,39 @@ const AppSidebar: React.FC = () => {
                 )
               )}
 
+
               {hasChildren && (
                 <div
                   className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-                    open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                    open
+                      ? "grid-rows-[1fr]"
+                      : "grid-rows-[0fr]"
                   }`}
                 >
                   <div className="overflow-hidden">
                     <div className="ml-5">
-                      {renderMenuItems(menu.children, level + 1)}
+                      {renderMenuItems(
+                        menu.children,
+                        level + 1
+                      )}
                     </div>
                   </div>
                 </div>
               )}
+
             </li>
           );
         })}
       </ul>
     );
   };
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | RENDER
+  |--------------------------------------------------------------------------
+  */
 
   return (
     <aside
@@ -346,21 +472,39 @@ const AppSidebar: React.FC = () => {
           isExpanded || isMobileOpen
             ? "w-[290px]"
             : isHovered
-              ? "w-[290px]"
-              : "w-[90px]"
+            ? "w-[290px]"
+            : "w-[90px]"
         }
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+        ${
+          isMobileOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+        }
         lg:translate-x-0`}
-      onMouseEnter={() => !isExpanded && setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() =>
+        !isExpanded &&
+        setIsHovered(true)
+      }
+      onMouseLeave={() =>
+        setIsHovered(false)
+      }
     >
+
+      {/* LOGO */}
+
       <div
         className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+          !isExpanded &&
+          !isHovered
+            ? "lg:justify-center"
+            : "justify-start"
         }`}
       >
         <Link to={homePath}>
-          {isExpanded || isHovered || isMobileOpen ? (
+
+          {isExpanded ||
+          isHovered ||
+          isMobileOpen ? (
             <>
               <img
                 className="dark:hidden"
@@ -386,50 +530,70 @@ const AppSidebar: React.FC = () => {
               height={32}
             />
           )}
+
         </Link>
       </div>
 
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
-          {loading ? (
-            (isExpanded || isHovered || isMobileOpen) && (
-              <div className="text-sm text-gray-400">Memuat menu...</div>
-            )
-          ) : error ? (
-            (isExpanded || isHovered || isMobileOpen) && (
-              <div className="text-sm text-error-500">{error}</div>
-            )
-          ) : (
-            <div className="flex flex-col gap-6">
-              {menus.map((section) => (
-                <div key={section.id}>
-                  {/* JUDUL SECTION */}
-                  <h2
-                    className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                      !isExpanded && !isHovered
-                        ? "lg:justify-center"
-                        : "justify-start"
-                    }`}
-                  >
-                    {isExpanded || isHovered || isMobileOpen ? (
-                      section.name
-                    ) : (
-                      <HorizontaLDots className="size-6" />
-                    )}
-                  </h2>
 
-                  {/* CHILD ROOT MENJADI MENU UTAMA */}
-                  {renderMenuItems(section.children, 0)}
-                </div>
-              ))}
-            </div>
-          )}
+      {/* SIDEBAR CONTENT */}
+
+      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+
+        <nav className="mb-6">
+
+          <div className="flex flex-col gap-6">
+
+            {menus.map((section) => (
+              <div key={section.id}>
+
+                {/* JUDUL SECTION */}
+
+                <h2
+                  className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                    !isExpanded &&
+                    !isHovered
+                      ? "lg:justify-center"
+                      : "justify-start"
+                  }`}
+                >
+
+                  {isExpanded ||
+                  isHovered ||
+                  isMobileOpen ? (
+                    section.name
+                  ) : (
+                    <HorizontaLDots className="size-6" />
+                  )}
+
+                </h2>
+
+
+                {/* CHILD ROOT = MENU UTAMA */}
+
+                {renderMenuItems(
+                  section.children,
+                  0
+                )}
+
+              </div>
+            ))}
+
+          </div>
+
         </nav>
 
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
+
+        {isExpanded ||
+        isHovered ||
+        isMobileOpen ? (
+          <SidebarWidget />
+        ) : null}
+
       </div>
+
     </aside>
   );
 };
+
 
 export default AppSidebar;

@@ -14,6 +14,47 @@ export interface AuthUser {
 
 const TOKEN_KEY = "access_token";
 const USER_KEY = "auth_user";
+const SIDEBAR_KEY = "auth_sidebar";
+
+export type SidebarMenu = {
+  id: number;
+  name: string;
+  path: string | null;
+  icon: string | null;
+  sort_order: number;
+  badge_key: string | null;
+  children: SidebarMenu[];
+};
+export const saveSidebar = (
+  menus: SidebarMenu[],
+  remember: boolean
+) => {
+  const storage = remember
+    ? localStorage
+    : sessionStorage;
+
+  storage.setItem(
+    SIDEBAR_KEY,
+    JSON.stringify(menus)
+  );
+};
+export const getSidebar = (): SidebarMenu[] => {
+  const raw =
+    localStorage.getItem(SIDEBAR_KEY) ||
+    sessionStorage.getItem(SIDEBAR_KEY);
+
+  if (!raw) {
+    return [];
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+};
+
+
 
 export const saveAuth = (
   token: string,
@@ -59,6 +100,9 @@ export const clearAuth = () => {
 
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USER_KEY);
+
+  localStorage.removeItem(SIDEBAR_KEY);
+  sessionStorage.removeItem(SIDEBAR_KEY);
 };
 
 const decodeToken = (token: string) => {

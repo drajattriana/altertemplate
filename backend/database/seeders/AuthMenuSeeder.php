@@ -83,7 +83,7 @@ class AuthMenuSeeder extends Seeder
             'Dashboard Superadmin',
             null,
             null,
-            'GridIcon',
+            null,
             1,
             'superadmin.access'
         );
@@ -92,7 +92,7 @@ class AuthMenuSeeder extends Seeder
             'Beranda',
             $superadminRoot,
             '/superadmin/dashboard',
-            null,
+            'GridIcon',
             1,
             'superadmin.dashboard'
         );
@@ -101,7 +101,7 @@ class AuthMenuSeeder extends Seeder
             'Menu',
             $superadminRoot,
             null,
-            null,
+            'ListIcon',
             2,
             'superadmin.menu'
         );
@@ -128,7 +128,7 @@ class AuthMenuSeeder extends Seeder
             'Roles',
             $superadminRoot,
             '/superadmin/roles',
-            null,
+            'UserCircleIcon',
             3,
             'superadmin.roles'
         );
@@ -137,7 +137,7 @@ class AuthMenuSeeder extends Seeder
             'Permissions',
             $superadminRoot,
             '/superadmin/permissions',
-            null,
+            'PageIcon',
             4,
             'superadmin.permissions'
         );
@@ -153,7 +153,7 @@ class AuthMenuSeeder extends Seeder
             'Dashboard Admin',
             null,
             null,
-            'GridIcon',
+            null,
             2,
             'admin.access'
         );
@@ -162,7 +162,7 @@ class AuthMenuSeeder extends Seeder
             'Beranda',
             $adminRoot,
             '/admin/dashboard',
-            null,
+            'GridIcon',
             1,
             'admin.dashboard'
         );

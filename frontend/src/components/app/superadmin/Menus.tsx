@@ -254,6 +254,52 @@ export default function Menus() {
 
   /*
   |--------------------------------------------------------------------------
+  | TOAST
+  |--------------------------------------------------------------------------
+  */
+
+  useEffect(() => {
+    if (!success) {
+      return;
+    }
+
+    const timeout =
+      window.setTimeout(() => {
+        setSuccess("");
+      }, 4000);
+
+    return () => {
+      window.clearTimeout(
+        timeout
+      );
+    };
+  }, [
+    success,
+  ]);
+
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const timeout =
+      window.setTimeout(() => {
+        setError("");
+      }, 5000);
+
+    return () => {
+      window.clearTimeout(
+        timeout
+      );
+    };
+  }, [
+    error,
+  ]);
+
+
+  /*
+  |--------------------------------------------------------------------------
   | API
   |--------------------------------------------------------------------------
   */
@@ -302,7 +348,8 @@ export default function Menus() {
     let data: any = {};
 
     try {
-      data = await response.json();
+      data =
+        await response.json();
     } catch {
       data = {};
     }
@@ -322,7 +369,8 @@ export default function Menus() {
     if (!response.ok) {
       if (
         data?.errors &&
-        typeof data.errors === "object"
+        typeof data.errors ===
+          "object"
       ) {
         const first =
           Object.values(
@@ -457,10 +505,13 @@ export default function Menus() {
           b[sortKey];
 
         if (
-          typeof valueA === "number" &&
-          typeof valueB === "number"
+          typeof valueA ===
+            "number" &&
+          typeof valueB ===
+            "number"
         ) {
-          return sortDirection === "asc"
+          return sortDirection ===
+            "asc"
             ? valueA - valueB
             : valueB - valueA;
         }
@@ -475,7 +526,8 @@ export default function Menus() {
             valueB ?? ""
           );
 
-        return sortDirection === "asc"
+        return sortDirection ===
+          "asc"
           ? stringA.localeCompare(
               stringB
             )
@@ -587,7 +639,8 @@ export default function Menus() {
         menus.forEach(
           (menu) => {
             if (
-              menu.parent_id !== null &&
+              menu.parent_id !==
+                null &&
               ids.has(
                 menu.parent_id
               ) &&
@@ -668,7 +721,8 @@ export default function Menus() {
         menu.name,
 
       parent_id:
-        menu.parent_id !== null
+        menu.parent_id !==
+        null
           ? String(
               menu.parent_id
             )
@@ -686,7 +740,8 @@ export default function Menus() {
         ),
 
       permission_id:
-        menu.permission_id !== null
+        menu.permission_id !==
+        null
           ? String(
               menu.permission_id
             )
@@ -756,7 +811,8 @@ export default function Menus() {
             : null,
 
         icon:
-          form.icon || null,
+          form.icon ||
+          null,
 
         sort_order:
           Number(
@@ -969,21 +1025,6 @@ export default function Menus() {
           </div>
 
 
-          {/* ALERT */}
-
-          {success && (
-            <div className="mx-6 mt-5 rounded-lg border border-success-200 bg-success-50 px-4 py-3 text-sm text-success-700 dark:border-success-500/20 dark:bg-success-500/10 dark:text-success-400">
-              {success}
-            </div>
-          )}
-
-          {error && (
-            <div className="mx-6 mt-5 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700 dark:border-error-500/20 dark:bg-error-500/10 dark:text-error-400">
-              {error}
-            </div>
-          )}
-
-
           {/* DATATABLE CONTROL */}
 
           <div className="flex flex-col gap-4 border-b border-gray-100 bg-gray-50/50 px-6 py-5 dark:border-gray-800 dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between">
@@ -1097,7 +1138,9 @@ export default function Menus() {
                     <button
                       type="button"
                       onClick={() =>
-                        handleSort("id")
+                        handleSort(
+                          "id"
+                        )
                       }
                       className="flex w-full items-center gap-1 text-left"
                     >
@@ -1117,7 +1160,9 @@ export default function Menus() {
                     <button
                       type="button"
                       onClick={() =>
-                        handleSort("name")
+                        handleSort(
+                          "name"
+                        )
                       }
                       className="flex w-full items-center gap-1 text-left"
                     >
@@ -1169,7 +1214,9 @@ export default function Menus() {
                     <button
                       type="button"
                       onClick={() =>
-                        handleSort("level")
+                        handleSort(
+                          "level"
+                        )
                       }
                       className="flex w-full items-center gap-1 text-left"
                     >
@@ -1246,7 +1293,8 @@ export default function Menus() {
                           <span className="text-gray-400">
                             {"— ".repeat(
                               Math.max(
-                                menu.level - 1,
+                                menu.level -
+                                  1,
                                 0
                               )
                             )}
@@ -1260,7 +1308,8 @@ export default function Menus() {
 
 
                       <TableCell className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {menu.parent_name ?? "-"}
+                        {menu.parent_name ??
+                          "-"}
                       </TableCell>
 
 
@@ -1315,11 +1364,15 @@ export default function Menus() {
                           <div className="min-w-40">
 
                             <div className="font-medium text-gray-700 dark:text-gray-300">
-                              {menu.permission_name}
+                              {
+                                menu.permission_name
+                              }
                             </div>
 
                             <div className="mt-0.5 text-gray-400">
-                              {menu.permission_slug}
+                              {
+                                menu.permission_slug
+                              }
                             </div>
 
                           </div>
@@ -1338,7 +1391,9 @@ export default function Menus() {
 
 
                       <TableCell className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {menu.sort_order}
+                        {
+                          menu.sort_order
+                        }
                       </TableCell>
 
 
@@ -1420,7 +1475,8 @@ export default function Menus() {
 
 
           {!loading &&
-          paginatedMenus.length === 0 && (
+          paginatedMenus.length ===
+            0 && (
             <div className="border-t border-gray-100 px-6 py-12 text-center dark:border-gray-800">
 
               <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -1445,7 +1501,8 @@ export default function Menus() {
 
               {sortedMenus.length === 0
                 ? 0
-                : (currentPage - 1) *
+                : (currentPage -
+                    1) *
                     pageSize +
                   1}
 
@@ -1475,7 +1532,8 @@ export default function Menus() {
                 }
                 onClick={() =>
                   setPage(
-                    currentPage - 1
+                    currentPage -
+                      1
                   )
                 }
                 className="h-10 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
@@ -1485,7 +1543,8 @@ export default function Menus() {
 
 
               <span className="min-w-12 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
-                {currentPage} / {totalPages}
+                {currentPage} /{" "}
+                {totalPages}
               </span>
 
 
@@ -1497,7 +1556,8 @@ export default function Menus() {
                 }
                 onClick={() =>
                   setPage(
-                    currentPage + 1
+                    currentPage +
+                      1
                   )
                 }
                 className="h-10 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
@@ -1512,6 +1572,105 @@ export default function Menus() {
         </div>
 
       </div>
+
+
+      {/* TOAST */}
+
+      {(success || error) && (
+        <div className="fixed bottom-5 right-5 z-[100002] w-[calc(100%-2rem)] max-w-sm">
+
+          {success && (
+            <div className="flex items-start gap-3 rounded-xl border border-success-200 bg-success-50 px-4 py-3.5 shadow-theme-lg dark:border-success-500/20 dark:bg-gray-900">
+
+              <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-600 dark:bg-success-500/15 dark:text-success-400">
+
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M5 12.5L9.2 16.5L19 7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+
+              </div>
+
+
+              <div className="min-w-0 flex-1">
+
+                <div className="text-sm font-semibold text-success-800 dark:text-success-400">
+                  Berhasil
+                </div>
+
+                <div className="mt-0.5 text-sm text-success-700 dark:text-gray-300">
+                  {success}
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                aria-label="Tutup"
+                onClick={() =>
+                  setSuccess("")
+                }
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-success-600 transition hover:bg-success-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                ✕
+              </button>
+
+            </div>
+          )}
+
+
+          {error && (
+            <div className="flex items-start gap-3 rounded-xl border border-error-200 bg-error-50 px-4 py-3.5 shadow-theme-lg dark:border-error-500/20 dark:bg-gray-900">
+
+              <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-error-100 text-error-600 dark:bg-error-500/15 dark:text-error-400">
+
+                <span className="text-base font-semibold">
+                  !
+                </span>
+
+              </div>
+
+
+              <div className="min-w-0 flex-1">
+
+                <div className="text-sm font-semibold text-error-800 dark:text-error-400">
+                  Gagal
+                </div>
+
+                <div className="mt-0.5 text-sm text-error-700 dark:text-gray-300">
+                  {error}
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                aria-label="Tutup"
+                onClick={() =>
+                  setError("")
+                }
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-error-600 transition hover:bg-error-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                ✕
+              </button>
+
+            </div>
+          )}
+
+        </div>
+      )}
 
 
       {/* ================================================================
@@ -1599,11 +1758,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               name:
-                                event.target.value,
+                                event
+                                  .target
+                                  .value,
                             })
                           )
                       }
@@ -1628,11 +1791,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               parent_id:
-                                event.target.value,
+                                event
+                                  .target
+                                  .value,
                             })
                           )
                       }
@@ -1689,11 +1856,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               path:
-                                event.target.value,
+                                event
+                                  .target
+                                  .value,
                             })
                           )
                       }
@@ -1726,11 +1897,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               sort_order:
-                                event.target.value,
+                                event
+                                  .target
+                                  .value,
                             })
                           )
                       }
@@ -1755,11 +1930,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               permission_id:
-                                event.target.value,
+                                event
+                                  .target
+                                  .value,
                             })
                           )
                       }
@@ -1770,7 +1949,9 @@ export default function Menus() {
                       </option>
 
                       {permissions.map(
-                        (permission) => (
+                        (
+                          permission
+                        ) => (
                           <option
                             key={
                               permission.id
@@ -1779,9 +1960,13 @@ export default function Menus() {
                               permission.id
                             }
                           >
-                            {permission.name}
+                            {
+                              permission.name
+                            }
                             {" — "}
-                            {permission.slug}
+                            {
+                              permission.slug
+                            }
                           </option>
                         )
                       )}
@@ -1806,11 +1991,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               badge_key:
-                                event.target.value,
+                                event
+                                  .target
+                                  .value,
                             })
                           )
                       }
@@ -1839,7 +2028,9 @@ export default function Menus() {
                       type="button"
                       onClick={() =>
                         setIconDropdownOpen(
-                          (previous) =>
+                          (
+                            previous
+                          ) =>
                             !previous
                         )
                       }
@@ -1898,7 +2089,9 @@ export default function Menus() {
                             type="button"
                             onClick={() => {
                               setForm(
-                                (previous) => ({
+                                (
+                                  previous
+                                ) => ({
                                   ...previous,
 
                                   icon: "",
@@ -1910,7 +2103,8 @@ export default function Menus() {
                               );
                             }}
                             className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
-                              form.icon === ""
+                              form.icon ===
+                              ""
                                 ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10"
                                 : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/[0.05]"
                             }`}
@@ -1926,7 +2120,9 @@ export default function Menus() {
 
 
                           {MENU_ICON_OPTIONS.map(
-                            (icon) => (
+                            (
+                              icon
+                            ) => (
                               <button
                                 key={
                                   icon.value
@@ -1934,7 +2130,9 @@ export default function Menus() {
                                 type="button"
                                 onClick={() => {
                                   setForm(
-                                    (previous) => ({
+                                    (
+                                      previous
+                                    ) => ({
                                       ...previous,
 
                                       icon:
@@ -1962,7 +2160,9 @@ export default function Menus() {
                                 />
 
                                 <span>
-                                  {icon.label}
+                                  {
+                                    icon.label
+                                  }
                                 </span>
 
                               </button>
@@ -2006,11 +2206,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               is_active:
-                                event.target.checked,
+                                event
+                                  .target
+                                  .checked,
                             })
                           )
                       }
@@ -2043,11 +2247,15 @@ export default function Menus() {
                       onChange={
                         (event) =>
                           setForm(
-                            (previous) => ({
+                            (
+                              previous
+                            ) => ({
                               ...previous,
 
                               is_hidden:
-                                event.target.checked,
+                                event
+                                  .target
+                                  .checked,
                             })
                           )
                       }
@@ -2130,7 +2338,9 @@ export default function Menus() {
               Yakin ingin menghapus menu{" "}
 
               <span className="font-semibold text-gray-700 dark:text-gray-200">
-                {deleteTarget.name}
+                {
+                  deleteTarget.name
+                }
               </span>
 
               ?

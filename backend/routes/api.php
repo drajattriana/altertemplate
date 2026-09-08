@@ -24,7 +24,7 @@ Route::prefix('auth')->group(function () {
         ]);
 
         Route::get(
-            '/auth/sidebar',
+            '/sidebar',
             [SidebarController::class, 'index']
         );
 

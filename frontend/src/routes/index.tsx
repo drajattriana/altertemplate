@@ -7,65 +7,32 @@ import ProtectedRoute from "../utils/ProtectedRoute";
 
 import AppLayout from "../layouts/AppLayout";
 import { AppWrapper } from "../components/app/common/PageMeta";
+import NotFound from "../pages/app/OtherPage/NotFound";
 
+{
+  /* =========================================================
+PUBLIC*/
+}
 const HomePage = lazy(() => import("../pages/public/HomePage"));
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 
-const DashboardPage = lazy(
-  () => import("../pages/app/Dashboard/Home")
+{
+  /* =========================================================
+APP */
+}
+const SuperadminDashboard = lazy(
+  () => import("../pages/app/superadmin/Dashboard"),
 );
 
-const UserProfiles = lazy(
-  () => import("../pages/app/UserProfiles")
-);
+const Menus = lazy(() => import("../pages/app/superadmin/Menus"));
 
-const Calendar = lazy(
-  () => import("../pages/app/Calendar")
-);
+const MenuCreate = lazy(() => import("../pages/app/superadmin/MenuCreate"));
 
-const Blank = lazy(
-  () => import("../pages/app/Blank")
-);
+const Roles = lazy(() => import("../pages/app/superadmin/Roles"));
 
-const FormElements = lazy(
-  () => import("../pages/app/Forms/FormElements")
-);
+const Permissions = lazy(() => import("../pages/app/superadmin/Permissions"));
 
-const BasicTables = lazy(
-  () => import("../pages/app/Tables/BasicTables")
-);
-
-const Alerts = lazy(
-  () => import("../pages/app/UiElements/Alerts")
-);
-
-const Avatars = lazy(
-  () => import("../pages/app/UiElements/Avatars")
-);
-
-const Badges = lazy(
-  () => import("../pages/app/UiElements/Badges")
-);
-
-const Buttons = lazy(
-  () => import("../pages/app/UiElements/Buttons")
-);
-
-const Images = lazy(
-  () => import("../pages/app/UiElements/Images")
-);
-
-const Videos = lazy(
-  () => import("../pages/app/UiElements/Videos")
-);
-
-const LineChart = lazy(
-  () => import("../pages/app/Charts/LineChart")
-);
-
-const BarChart = lazy(
-  () => import("../pages/app/Charts/BarChart")
-);
+const AdminDashboard = lazy(() => import("../pages/app/admin/Dashboard"));
 
 const withSuspense = (element: ReactElement) => {
   return (
@@ -84,26 +51,19 @@ const withSuspense = (element: ReactElement) => {
 const AppRoutes = () => {
   return (
     <Routes>
-
       {/* =========================================================
           PUBLIC
       ========================================================== */}
 
       <Route element={<PublicLayout />}>
-        <Route
-          path="/"
-          element={withSuspense(<HomePage />)}
-        />
+        <Route path="/" element={withSuspense(<HomePage />)} />
       </Route>
 
       {/* =========================================================
           LOGIN
       ========================================================== */}
 
-      <Route
-        path="/login"
-        element={withSuspense(<LoginPage />)}
-      />
+      <Route path="/login" element={withSuspense(<LoginPage />)} />
 
       {/* =========================================================
           SUPERADMIN
@@ -119,86 +79,23 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* /superadmin otomatis ke /superadmin/dashboard */}
         <Route
           index
-          element={
-            <Navigate
-              to="/superadmin/dashboard"
-              replace
-            />
-          }
+          element={<Navigate to="/superadmin/dashboard" replace />}
         />
 
         <Route
           path="dashboard"
-          element={withSuspense(<DashboardPage />)}
+          element={withSuspense(<SuperadminDashboard />)}
         />
 
-        <Route
-          path="profile"
-          element={withSuspense(<UserProfiles />)}
-        />
+        <Route path="menu" element={withSuspense(<Menus />)} />
 
-        <Route
-          path="calendar"
-          element={withSuspense(<Calendar />)}
-        />
+        <Route path="menu/create" element={withSuspense(<MenuCreate />)} />
 
-        <Route
-          path="blank"
-          element={withSuspense(<Blank />)}
-        />
+        <Route path="roles" element={withSuspense(<Roles />)} />
 
-        <Route
-          path="form-elements"
-          element={withSuspense(<FormElements />)}
-        />
-
-        <Route
-          path="basic-tables"
-          element={withSuspense(<BasicTables />)}
-        />
-
-        <Route
-          path="alerts"
-          element={withSuspense(<Alerts />)}
-        />
-
-        <Route
-          path="avatars"
-          element={withSuspense(<Avatars />)}
-        />
-
-        <Route
-          path="badge"
-          element={withSuspense(<Badges />)}
-        />
-
-        <Route
-          path="buttons"
-          element={withSuspense(<Buttons />)}
-        />
-
-        <Route
-          path="images"
-          element={withSuspense(<Images />)}
-        />
-
-        <Route
-          path="videos"
-          element={withSuspense(<Videos />)}
-        />
-
-        <Route
-          path="line-chart"
-          element={withSuspense(<LineChart />)}
-        />
-
-        <Route
-          path="bar-chart"
-          element={withSuspense(<BarChart />)}
-        />
+        <Route path="permissions" element={withSuspense(<Permissions />)} />
       </Route>
 
       {/* =========================================================
@@ -215,97 +112,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* /admin otomatis ke /admin/dashboard */}
-        <Route
-          index
-          element={
-            <Navigate
-              to="/admin/dashboard"
-              replace
-            />
-          }
-        />
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
 
-        <Route
-          path="dashboard"
-          element={withSuspense(<DashboardPage />)}
-        />
-
-        <Route
-          path="profile"
-          element={withSuspense(<UserProfiles />)}
-        />
-
-        <Route
-          path="calendar"
-          element={withSuspense(<Calendar />)}
-        />
-
-        <Route
-          path="blank"
-          element={withSuspense(<Blank />)}
-        />
-
-        <Route
-          path="form-elements"
-          element={withSuspense(<FormElements />)}
-        />
-
-        <Route
-          path="basic-tables"
-          element={withSuspense(<BasicTables />)}
-        />
-
-        <Route
-          path="alerts"
-          element={withSuspense(<Alerts />)}
-        />
-
-        <Route
-          path="avatars"
-          element={withSuspense(<Avatars />)}
-        />
-
-        <Route
-          path="badge"
-          element={withSuspense(<Badges />)}
-        />
-
-        <Route
-          path="buttons"
-          element={withSuspense(<Buttons />)}
-        />
-
-        <Route
-          path="images"
-          element={withSuspense(<Images />)}
-        />
-
-        <Route
-          path="videos"
-          element={withSuspense(<Videos />)}
-        />
-
-        <Route
-          path="line-chart"
-          element={withSuspense(<LineChart />)}
-        />
-
-        <Route
-          path="bar-chart"
-          element={withSuspense(<BarChart />)}
-        />
+        <Route path="dashboard" element={withSuspense(<AdminDashboard />)} />
       </Route>
 
       {/* =========================================================
           FALLBACK
       ========================================================== */}
 
-      <Route
-        path="*"
-        element={<Navigate to="/" replace />}
-      />
-
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

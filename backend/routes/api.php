@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SidebarController;
 
 Route::prefix('auth')->group(function () {
 
@@ -21,6 +22,11 @@ Route::prefix('auth')->group(function () {
             AuthController::class,
             'logout'
         ]);
+
+        Route::get(
+            '/auth/sidebar',
+            [SidebarController::class, 'index']
+        );
 
     });
 

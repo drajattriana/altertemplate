@@ -11,9 +11,7 @@ import {
 } from "react-router-dom";
 
 import PublicLayout from "../layouts/PublicLayout";
-
 import ProtectedRoute from "../utils/ProtectedRoute";
-
 import AppLayout from "../layouts/AppLayout";
 
 import {
@@ -50,6 +48,29 @@ const LogoutPage =
     () =>
       import(
         "../pages/auth/LogoutPage"
+      )
+  );
+
+
+/*
+|--------------------------------------------------------------------------
+| ACCOUNT
+|--------------------------------------------------------------------------
+*/
+
+const Profile =
+  lazy(
+    () =>
+      import(
+        "../pages/app/Profile"
+      )
+  );
+
+const Documentation =
+  lazy(
+    () =>
+      import(
+        "../pages/app/Documentation"
       )
   );
 
@@ -182,6 +203,41 @@ const AppRoutes =
             )
           }
         />
+
+
+        {/* ACCOUNT */}
+
+        <Route
+          element={
+            <ProtectedRoute
+              requireMenuAccess={
+                false
+              }
+            >
+              <AppWrapper>
+                <AppLayout />
+              </AppWrapper>
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            path="/profile"
+            element={
+              withSuspense(
+                <Profile />
+              )
+            }
+          />
+
+          <Route
+            path="/documentation"
+            element={
+              withSuspense(
+                <Documentation />
+              )
+            }
+          />
+        </Route>
 
 
         {/* SUPERADMIN */}

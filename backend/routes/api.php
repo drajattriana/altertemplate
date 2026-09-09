@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AuthDocumentationController;
 use App\Http\Controllers\Api\AuthMenuController;
 use App\Http\Controllers\Api\AuthNotificationController;
 use App\Http\Controllers\Api\AuthPermissionController;
@@ -23,10 +24,24 @@ Route::prefix('auth')->group(function () {
             'me',
         ]);
 
+        Route::put('/password', [
+            AuthController::class,
+            'updatePassword',
+        ]);
+
         Route::post('/logout', [
             AuthController::class,
             'logout',
         ]);
+
+        Route::get(
+            '/documentation',
+            [
+                AuthDocumentationController::class,
+                'index',
+            ]
+        );
+
 
 
         // Sidebar Access

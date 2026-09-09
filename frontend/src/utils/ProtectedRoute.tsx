@@ -20,11 +20,13 @@ import {
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  requireMenuAccess?: boolean;
 }
 
 
 export default function ProtectedRoute({
   children,
+  requireMenuAccess = true,
 }: ProtectedRouteProps) {
   const navigate =
     useNavigate();
@@ -37,14 +39,6 @@ export default function ProtectedRoute({
 
   const user =
     getAuthUser();
-
-  const pathSegments =
-    location.pathname
-      .split("/")
-      .filter(Boolean);
-
-  const isRootPath =
-    pathSegments.length <= 1;
 
 
   /*
@@ -136,7 +130,7 @@ export default function ProtectedRoute({
   */
 
   if (
-    !isRootPath &&
+    requireMenuAccess &&
     !hasSidebarPath(
       location.pathname
     )

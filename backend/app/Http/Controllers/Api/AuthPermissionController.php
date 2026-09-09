@@ -13,8 +13,6 @@ class AuthPermissionController extends Controller
 {
     public function index(): JsonResponse
     {
-        $this->authorizePermissionManagement();
-
         $permissions = DB::table('auth_permissions as permission')
             ->select([
                 'permission.id',
@@ -72,8 +70,6 @@ class AuthPermissionController extends Controller
     public function store(
         Request $request
     ): JsonResponse {
-        $this->authorizePermissionManagement();
-
         $validated =
             $this->validatePermission(
                 $request
@@ -108,8 +104,6 @@ class AuthPermissionController extends Controller
         Request $request,
         int $id
     ): JsonResponse {
-        $this->authorizePermissionManagement();
-
         $permission =
             DB::table('auth_permissions')
                 ->where('id', $id)
@@ -151,8 +145,6 @@ class AuthPermissionController extends Controller
     public function destroy(
         int $id
     ): JsonResponse {
-        $this->authorizePermissionManagement();
-
         $permission =
             DB::table('auth_permissions')
                 ->where('id', $id)
@@ -251,46 +243,5 @@ class AuthPermissionController extends Controller
                 ),
             ],
         ]);
-    }
-
-
-    private function authorizePermissionManagement(): void
-    {
-        $user =
-            auth('api')->user();
-
-        if (!$user) {
-            abort(
-                401,
-                'Unauthenticated'
-            );
-        }
-
-        $allowed =
-            DB::table(
-                'auth_role_permissions as role_permission'
-            )
-                ->join(
-                    'auth_permissions as permission',
-                    'permission.id',
-                    '=',
-                    'role_permission.permission_id'
-                )
-                ->where(
-                    'role_permission.role_id',
-                    $user->role_id
-                )
-                ->where(
-                    'permission.slug',
-                    'superadmin.permissions'
-                )
-                ->exists();
-
-        if (!$allowed) {
-            abort(
-                403,
-                'Anda tidak memiliki akses Permission Management.'
-            );
-        }
     }
 }

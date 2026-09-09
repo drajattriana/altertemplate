@@ -1,71 +1,154 @@
-import { useEffect, type ReactNode } from "react";
+import {
+  useEffect,
+  type ReactNode,
+} from "react";
 
-import { Navigate, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import {
   clearAuth,
   getAuthUser,
   getTokenExpiration,
+  hasSidebarPath,
   isAuthenticated,
 } from "../utils/auth";
 
+
 interface ProtectedRouteProps {
   children: ReactNode;
-  allowedRoles?: string[];
 }
+
 
 export default function ProtectedRoute({
   children,
-  allowedRoles,
 }: ProtectedRouteProps) {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const authenticated = isAuthenticated();
-  const user = getAuthUser();
+  const location =
+    useLocation();
+
+  const authenticated =
+    isAuthenticated();
+
+  const user =
+    getAuthUser();
+
+  const pathSegments =
+    location.pathname
+      .split("/")
+      .filter(Boolean);
+
+  const isRootPath =
+    pathSegments.length <= 1;
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | TOKEN EXPIRATION
+  |--------------------------------------------------------------------------
+  */
 
   useEffect(() => {
     if (!authenticated) {
       return;
     }
 
-    const expiresAt = getTokenExpiration();
+    const expiresAt =
+      getTokenExpiration();
 
     if (!expiresAt) {
       return;
     }
 
-    const remaining = expiresAt - Date.now();
+    const remaining =
+      expiresAt -
+      Date.now();
 
-    if (remaining <= 0) {
+    if (
+      remaining <= 0
+    ) {
       clearAuth();
 
-      navigate("/login", {
-        replace: true,
-      });
+      navigate(
+        "/login",
+        {
+          replace: true,
+        }
+      );
 
       return;
     }
 
-    const timer = window.setTimeout(() => {
-      clearAuth();
+    const timer =
+      window.setTimeout(
+        () => {
+          clearAuth();
 
-      navigate("/login", {
-        replace: true,
-      });
-    }, remaining);
+          navigate(
+            "/login",
+            {
+              replace: true,
+            }
+          );
+        },
+        remaining
+      );
 
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(
+        timer
+      );
     };
-  }, [authenticated, navigate]);
+  }, [
+    authenticated,
+    navigate,
+  ]);
 
-  if (!authenticated || !user) {
-    return <Navigate to="/login" replace />;
+
+  /*
+  |--------------------------------------------------------------------------
+  | AUTH
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    !authenticated ||
+    !user
+  ) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role.slug)) {
-    return <Navigate to={user.redirect_path} replace />;
+
+  /*
+  |--------------------------------------------------------------------------
+  | MENU ACCESS
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    !isRootPath &&
+    !hasSidebarPath(
+      location.pathname
+    )
+  ) {
+    return (
+      <Navigate
+        to="/404"
+        replace
+      />
+    );
   }
+
 
   return children;
 }

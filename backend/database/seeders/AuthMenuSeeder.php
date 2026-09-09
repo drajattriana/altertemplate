@@ -10,10 +10,17 @@ class AuthMenuSeeder extends Seeder
 {
     public function run(): void
     {
-        $permissionIds = DB::table('auth_permissions')
-            ->pluck('id', 'slug');
+        $permissionIds =
+            DB::table('auth_permissions')
+                ->pluck(
+                    'id',
+                    'slug'
+                );
 
-        if ($permissionIds->isEmpty()) {
+        if (
+            $permissionIds
+                ->isEmpty()
+        ) {
             throw new RuntimeException(
                 'Permission belum tersedia.'
             );
@@ -28,47 +35,100 @@ class AuthMenuSeeder extends Seeder
             string $permissionSlug
         ) use ($permissionIds): int {
 
-            if (!isset($permissionIds[$permissionSlug])) {
+            if (
+                !isset(
+                    $permissionIds[
+                        $permissionSlug
+                    ]
+                )
+            ) {
                 throw new RuntimeException(
                     "Permission {$permissionSlug} tidak ditemukan."
                 );
             }
 
-            $query = DB::table('auth_menus')
-                ->where('name', $name);
+            $query =
+                DB::table(
+                    'auth_menus'
+                )
+                    ->where(
+                        'name',
+                        $name
+                    );
 
-            if ($parentId === null) {
-                $query->whereNull('parent_id');
+            if (
+                $parentId === null
+            ) {
+                $query->whereNull(
+                    'parent_id'
+                );
             } else {
-                $query->where('parent_id', $parentId);
+                $query->where(
+                    'parent_id',
+                    $parentId
+                );
             }
 
-            $existing = $query->first();
+            $existing =
+                $query->first();
 
             $data = [
-                'parent_id' => $parentId,
-                'name' => $name,
-                'path' => $path,
-                'icon' => $icon,
-                'sort_order' => $sortOrder,
-                'permission_id' => $permissionIds[$permissionSlug],
-                'badge_key' => null,
-                'is_active' => true,
-                'is_hidden' => false,
-                'updated_at' => now(),
+                'parent_id' =>
+                    $parentId,
+
+                'name' =>
+                    $name,
+
+                'path' =>
+                    $path,
+
+                'icon' =>
+                    $icon,
+
+                'sort_order' =>
+                    $sortOrder,
+
+                'permission_id' =>
+                    $permissionIds[
+                        $permissionSlug
+                    ],
+
+                'badge_key' =>
+                    null,
+
+                'is_active' =>
+                    true,
+
+                'is_hidden' =>
+                    false,
+
+                'updated_at' =>
+                    now(),
             ];
 
             if ($existing) {
-                DB::table('auth_menus')
-                    ->where('id', $existing->id)
-                    ->update($data);
+                DB::table(
+                    'auth_menus'
+                )
+                    ->where(
+                        'id',
+                        $existing->id
+                    )
+                    ->update(
+                        $data
+                    );
 
-                return (int) $existing->id;
+                return (int)
+                    $existing->id;
             }
 
-            return DB::table('auth_menus')->insertGetId([
+            return DB::table(
+                'auth_menus'
+            )->insertGetId([
                 ...$data,
-                'created_at' => now(),
+
+                'created_at' =>
+                    now(),
             ]);
         };
 
@@ -79,14 +139,15 @@ class AuthMenuSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        $superadminRoot = $saveMenu(
-            'Dashboard Superadmin',
-            null,
-            null,
-            null,
-            1,
-            'superadmin.access'
-        );
+        $superadminRoot =
+            $saveMenu(
+                'Dashboard Superadmin',
+                null,
+                null,
+                null,
+                1,
+                'superadmin.access'
+            );
 
         $saveMenu(
             'Beranda',
@@ -94,7 +155,7 @@ class AuthMenuSeeder extends Seeder
             '/superadmin/dashboard',
             'GridIcon',
             1,
-            'superadmin.dashboard'
+            'superadmin.access'
         );
 
         $saveMenu(
@@ -103,7 +164,7 @@ class AuthMenuSeeder extends Seeder
             '/superadmin/roles',
             'UserCircleIcon',
             2,
-            'superadmin.roles'
+            'superadmin.access'
         );
 
         $saveMenu(
@@ -112,35 +173,17 @@ class AuthMenuSeeder extends Seeder
             '/superadmin/permissions',
             'PageIcon',
             3,
-            'superadmin.permissions'
+            'superadmin.access'
         );
 
-        $menuParent = $saveMenu(
+        $saveMenu(
             'Menu',
             $superadminRoot,
             '/superadmin/menu',
             'ListIcon',
             4,
-            'superadmin.menu'
+            'superadmin.access'
         );
-
-        // $saveMenu(
-        //     'Tambah Menu',
-        //     $menuParent,
-        //     '/superadmin/menu/create',
-        //     null,
-        //     1,
-        //     'superadmin.menu.create'
-        // );
-
-        // $saveMenu(
-        //     'List Menu',
-        //     $menuParent,
-        //     '/superadmin/menu',
-        //     null,
-        //     2,
-        //     'superadmin.menu.list'
-        // );
 
 
         /*
@@ -149,14 +192,15 @@ class AuthMenuSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        $adminRoot = $saveMenu(
-            'Dashboard Admin',
-            null,
-            null,
-            null,
-            2,
-            'admin.access'
-        );
+        $adminRoot =
+            $saveMenu(
+                'Dashboard Admin',
+                null,
+                null,
+                null,
+                2,
+                'admin.access'
+            );
 
         $saveMenu(
             'Beranda',
@@ -164,7 +208,7 @@ class AuthMenuSeeder extends Seeder
             '/admin/dashboard',
             'GridIcon',
             1,
-            'admin.dashboard'
+            'admin.access'
         );
     }
 }

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class MenuController extends Controller
+class AuthMenuController extends Controller
 {
     private const ALLOWED_ICONS = [
         'alert',
@@ -84,8 +84,6 @@ class MenuController extends Controller
 
     public function index(): JsonResponse
     {
-        $this->authorizeMenu();
-
         $menus = DB::table('auth_menus as menu')
             ->leftJoin(
                 'auth_menus as parent',
@@ -160,8 +158,6 @@ class MenuController extends Controller
     public function store(
         Request $request
     ): JsonResponse {
-        $this->authorizeMenu();
-
         $validated =
             $this->validateMenu(
                 $request
@@ -229,8 +225,6 @@ class MenuController extends Controller
         Request $request,
         int $id
     ): JsonResponse {
-        $this->authorizeMenu();
-
         $menu = DB::table('auth_menus')
             ->where('id', $id)
             ->first();
@@ -310,8 +304,6 @@ class MenuController extends Controller
     public function destroy(
         int $id
     ): JsonResponse {
-        $this->authorizeMenu();
-
         $menu = DB::table('auth_menus')
             ->where('id', $id)
             ->first();
@@ -664,46 +656,5 @@ class MenuController extends Controller
         }
 
         return $level;
-    }
-
-
-    private function authorizeMenu(): void
-    {
-        $user =
-            auth('api')->user();
-
-        if (!$user) {
-            abort(
-                401,
-                'Unauthenticated'
-            );
-        }
-
-        $allowed =
-            DB::table(
-                'auth_role_permissions as rp'
-            )
-                ->join(
-                    'auth_permissions as permission',
-                    'permission.id',
-                    '=',
-                    'rp.permission_id'
-                )
-                ->where(
-                    'rp.role_id',
-                    $user->role_id
-                )
-                ->where(
-                    'permission.slug',
-                    'superadmin.menu'
-                )
-                ->exists();
-
-        if (!$allowed) {
-            abort(
-                403,
-                'Anda tidak memiliki akses Menu Management.'
-            );
-        }
     }
 }

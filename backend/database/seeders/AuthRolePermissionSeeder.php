@@ -14,10 +14,6 @@ class AuthRolePermissionSeeder extends Seeder
             'superadmin',
             [
                 'superadmin.access',
-                'superadmin.dashboard',
-                'superadmin.menu',
-                'superadmin.roles',
-                'superadmin.permissions',
             ]
         );
 
@@ -25,18 +21,22 @@ class AuthRolePermissionSeeder extends Seeder
             'admin',
             [
                 'admin.access',
-                'admin.dashboard',
             ]
         );
     }
+
 
     private function syncPermissions(
         string $roleSlug,
         array $permissionSlugs
     ): void {
-        $roleId = DB::table('auth_roles')
-            ->where('slug', $roleSlug)
-            ->value('id');
+        $roleId =
+            DB::table('auth_roles')
+                ->where(
+                    'slug',
+                    $roleSlug
+                )
+                ->value('id');
 
         if (!$roleId) {
             throw new RuntimeException(
@@ -44,21 +44,51 @@ class AuthRolePermissionSeeder extends Seeder
             );
         }
 
-        $permissionIds = DB::table('auth_permissions')
-            ->whereIn('slug', $permissionSlugs)
-            ->pluck('id')
-            ->all();
+        $permissionIds =
+            DB::table(
+                'auth_permissions'
+            )
+                ->whereIn(
+                    'slug',
+                    $permissionSlugs
+                )
+                ->pluck('id')
+                ->all();
 
-       
+        if (
+            count(
+                $permissionIds
+            ) !==
+            count(
+                $permissionSlugs
+            )
+        ) {
+            throw new RuntimeException(
+                "Permission untuk role {$roleSlug} tidak lengkap."
+            );
+        }
 
-        DB::table('auth_role_permissions')
-            ->where('role_id', $roleId)
+        DB::table(
+            'auth_role_permissions'
+        )
+            ->where(
+                'role_id',
+                $roleId
+            )
             ->delete();
 
-        foreach ($permissionIds as $permissionId) {
-            DB::table('auth_role_permissions')->insert([
-                'role_id' => $roleId,
-                'permission_id' => $permissionId,
+        foreach (
+            $permissionIds
+            as $permissionId
+        ) {
+            DB::table(
+                'auth_role_permissions'
+            )->insert([
+                'role_id' =>
+                    $roleId,
+
+                'permission_id' =>
+                    $permissionId,
             ]);
         }
     }

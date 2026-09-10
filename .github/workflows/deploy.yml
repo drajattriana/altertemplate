@@ -1,0 +1,210 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+
+    env:
+      SSH_PORT: ${{ vars.SSH_PORT }}
+      PHP_BIN: ${{ vars.PHP_BIN }}
+      BACKEND_PATH: ${{ vars.BACKEND_PATH }}
+      FRONTEND_PATH: ${{ vars.FRONTEND_PATH }}
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
+
+    steps:
+
+      # ==============================================================================================
+      # CHECKOUT
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+
+      # ==============================================================================================
+      # BACKEND BUILD
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          tools: composer:v2
+          coverage: none
+          extensions: >
+            bcmath,
+            curl,
+            dom,
+            fileinfo,
+            gd,
+            intl,
+            mbstring,
+            openssl,
+            pdo_mysql,
+            tokenizer,
+            xml,
+            xmlreader,
+            xmlwriter,
+            zip
+
+
+      - name: Prepare Laravel build environment
+        working-directory: backend
+        run: |
+          cp .env.example .env
+
+
+      - name: Install Composer production dependencies
+        working-directory: backend
+        run: |
+          composer install \
+            --no-dev \
+            --prefer-dist \
+            --optimize-autoloader \
+            --no-interaction \
+            --no-progress
+
+
+      - name: Validate Laravel
+        working-directory: backend
+        run: |
+          php artisan --version
+
+
+      - name: Remove temporary Laravel environment
+        working-directory: backend
+        run: |
+          rm -f .env
+
+
+      # ==============================================================================================
+      # FRONTEND BUILD
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: |
+          npm ci
+
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: |
+          npm run build
+
+
+      # ==============================================================================================
+      # CREATE DEPLOYMENT ARCHIVES
+
+      - name: Create backend archive
+        run: |
+          cd backend
+
+          tar -czf ../backend-production.tar.gz \
+            --exclude=.env \
+            --exclude=.env.* \
+            --exclude=tests \
+            --exclude=node_modules \
+            --exclude=storage \
+            .
+
+
+      - name: Create frontend archive
+        run: |
+          tar -czf frontend-production.tar.gz \
+            -C frontend/dist \
+            .
+
+
+      # ==============================================================================================
+      # SSH
+
+      - name: Prepare SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/altertemplate_deploy
+
+          chmod 600 ~/.ssh/altertemplate_deploy
+
+          ssh-keyscan \
+            -p "$SSH_PORT" \
+            "$SSH_HOST" \
+            >> ~/.ssh/known_hosts
+
+
+      - name: Test SSH connection
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh \
+            -i ~/.ssh/altertemplate_deploy \
+            -p "$SSH_PORT" \
+            "$SSH_USER@$SSH_HOST" \
+            "echo 'SSH connection successful'"
+
+
+      # ==============================================================================================
+      # UPLOAD
+
+      - name: Create remote deployment directory
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh \
+            -i ~/.ssh/altertemplate_deploy \
+            -p "$SSH_PORT" \
+            "$SSH_USER@$SSH_HOST" \
+            "mkdir -p ~/.altertemplate-deploy/${GITHUB_RUN_ID}"
+
+
+      - name: Upload deployment files
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          scp \
+            -i ~/.ssh/altertemplate_deploy \
+            -P "$SSH_PORT" \
+            backend-production.tar.gz \
+            frontend-production.tar.gz \
+            deploy/remote-deploy.sh \
+            "$SSH_USER@$SSH_HOST:~/.altertemplate-deploy/${GITHUB_RUN_ID}/"
+
+
+      # ==============================================================================================
+      # DEPLOY
+
+      - name: Run production deployment
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh \
+            -i ~/.ssh/altertemplate_deploy \
+            -p "$SSH_PORT" \
+            "$SSH_USER@$SSH_HOST" \
+            "bash ~/.altertemplate-deploy/${GITHUB_RUN_ID}/remote-deploy.sh \
+            '$BACKEND_PATH' \
+            '$FRONTEND_PATH' \
+            '$PHP_BIN'"

@@ -1,0 +1,49 @@
+name: Test cPanel SCP
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-scp:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ==============================================================================================
+      # PREPARE SSH
+
+      - name: Prepare SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/altertemplate_deploy
+
+          chmod 600 ~/.ssh/altertemplate_deploy
+
+
+      # ==============================================================================================
+      # CREATE TEST FILE
+
+      - name: Create test file
+        run: |
+          echo "Upload dari GitHub Actions berhasil." > cpanel-upload-test.txt
+
+
+      # ==============================================================================================
+      # TEST SCP
+
+      - name: Upload test file
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ vars.SSH_PORT }}
+        run: |
+          scp \
+            -i ~/.ssh/altertemplate_deploy \
+            -P "$SSH_PORT" \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            -o StrictHostKeyChecking=accept-new \
+            cpanel-upload-test.txt \
+            "$SSH_USER@$SSH_HOST:~/cpanel-upload-test.txt"

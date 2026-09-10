@@ -109,7 +109,7 @@ jobs:
 
 
       # ==============================================================================================
-      # CREATE DEPLOYMENT ARCHIVES
+      # CREATE ARCHIVES
 
       - name: Create backend archive
         run: |
@@ -132,79 +132,63 @@ jobs:
 
 
       # ==============================================================================================
-      # SSH
+      # SSH CONNECTION
 
       - name: Prepare SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
         run: |
           mkdir -p ~/.ssh
 
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/altertemplate_deploy
-
           chmod 600 ~/.ssh/altertemplate_deploy
 
-          ssh-keyscan \
-            -p "$SSH_PORT" \
-            "$SSH_HOST" \
-            >> ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host altertemplate-production
+              HostName $SSH_HOST
+              User $SSH_USER
+              Port $SSH_PORT
+              IdentityFile ~/.ssh/altertemplate_deploy
+              BatchMode yes
+              StrictHostKeyChecking accept-new
+              ConnectTimeout 30
+              ServerAliveInterval 15
+              ServerAliveCountMax 4
+              ControlMaster auto
+              ControlPersist 120
+              ControlPath ~/.ssh/altertemplate-%C
+          EOF
+
+          chmod 600 ~/.ssh/config
 
 
-      - name: Test SSH connection
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
+      - name: Open SSH connection
         run: |
-          ssh \
-            -i ~/.ssh/altertemplate_deploy \
-            -p "$SSH_PORT" \
-            "$SSH_USER@$SSH_HOST" \
-            "echo 'SSH connection successful'"
+          ssh altertemplate-production \
+            "mkdir -p ~/.altertemplate-deploy/current && echo 'SSH ready'"
 
 
       # ==============================================================================================
       # UPLOAD
 
-      - name: Create remote deployment directory
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-        run: |
-          ssh \
-            -i ~/.ssh/altertemplate_deploy \
-            -p "$SSH_PORT" \
-            "$SSH_USER@$SSH_HOST" \
-            "mkdir -p ~/.altertemplate-deploy/${GITHUB_RUN_ID}"
-
-
       - name: Upload deployment files
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
         run: |
           scp \
-            -i ~/.ssh/altertemplate_deploy \
-            -P "$SSH_PORT" \
             backend-production.tar.gz \
             frontend-production.tar.gz \
             deploy/remote-deploy.sh \
-            "$SSH_USER@$SSH_HOST:~/.altertemplate-deploy/${GITHUB_RUN_ID}/"
+            altertemplate-production:~/.altertemplate-deploy/current/
 
 
       # ==============================================================================================
       # DEPLOY
 
       - name: Run production deployment
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
         run: |
-          ssh \
-            -i ~/.ssh/altertemplate_deploy \
-            -p "$SSH_PORT" \
-            "$SSH_USER@$SSH_HOST" \
-            "bash ~/.altertemplate-deploy/${GITHUB_RUN_ID}/remote-deploy.sh \
+          ssh altertemplate-production \
+            "bash ~/.altertemplate-deploy/current/remote-deploy.sh \
             '$BACKEND_PATH' \
             '$FRONTEND_PATH' \
             '$PHP_BIN'"

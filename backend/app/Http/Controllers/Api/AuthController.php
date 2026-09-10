@@ -7,11 +7,13 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use PHPOpenSourceSaver\JWTAuth\JWTGuard;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
-    {
+    public function login(
+        Request $request
+    ): JsonResponse {
         $request->validate([
             'username' => [
                 'required',
@@ -77,17 +79,20 @@ class AuthController extends Controller
                 ? 60 * 24 * 7
                 : 60 * 2;
 
-        auth('api')
+        /** @var JWTGuard $guard */
+        $guard =
+            auth('api');
+
+        $guard
             ->factory()
             ->setTTL(
                 $ttl
             );
 
         $token =
-            auth('api')
-                ->login(
-                    $user
-                );
+            $guard->login(
+                $user
+            );
 
         $user->update([
             'last_login_at' =>
@@ -117,9 +122,13 @@ class AuthController extends Controller
 
     public function me(): JsonResponse
     {
+        /** @var JWTGuard $guard */
+        $guard =
+            auth('api');
+
+        /** @var User|null $user */
         $user =
-            auth('api')
-                ->user();
+            $guard->user();
 
         if (!$user) {
             return response()->json([
@@ -144,9 +153,13 @@ class AuthController extends Controller
     public function updatePassword(
         Request $request
     ): JsonResponse {
+        /** @var JWTGuard $guard */
+        $guard =
+            auth('api');
+
+        /** @var User|null $user */
         $user =
-            auth('api')
-                ->user();
+            $guard->user();
 
         if (!$user) {
             return response()->json([
@@ -228,8 +241,11 @@ class AuthController extends Controller
 
     public function logout(): JsonResponse
     {
-        auth('api')
-            ->logout();
+        /** @var JWTGuard $guard */
+        $guard =
+            auth('api');
+
+        $guard->logout();
 
         return response()->json([
             'message' =>

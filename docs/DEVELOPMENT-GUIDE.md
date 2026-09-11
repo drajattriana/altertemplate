@@ -1,28 +1,30 @@
 # Development Guide
 
-Panduan singkat agar style kerja antar developer konsisten.
+Standar sederhana untuk development project Alterdev.
 
 ## Scope
 
-| Prefix | Area |
+| Prefix | Arti |
 | --- | --- |
 | `FE` | Frontend |
 | `BF` | Backend |
 | `MB` | Mobile |
-| `ALL` | Lintas area, docs, CI/CD, config umum |
+| `ALL` | Lintas area / docs / CI/CD / config umum |
+
+Gunakan `BF` untuk backend agar konsisten. Jangan campur `BE` dan `BF`.
 
 ## Type
 
 | Type | Untuk |
 | --- | --- |
-| `feat` | Fitur baru |
-| `fix` | Bug fix |
-| `refactor` | Rapikan struktur |
-| `docs` | Dokumentasi |
-| `chore` | Config/dependency/maintenance |
-| `test` | Testing |
-| `style` | Formatting/UI kecil |
-| `perf` | Optimasi performa |
+| `feat` | fitur baru |
+| `fix` | bug fix |
+| `refactor` | rapikan struktur tanpa mengubah hasil |
+| `docs` | dokumentasi |
+| `chore` | config, dependency, maintenance |
+| `test` | testing |
+| `style` | formatting/UI kecil |
+| `perf` | optimasi performa |
 
 ## Format Commit
 
@@ -35,18 +37,18 @@ Contoh:
 ```text
 FE:feat/create-menu
 FE:fix/sidebar-mobile
-BF:feat/menu-permission-api
-BF:fix/jwt-expiration
+BF:feat/create-user-api
+BF:fix/login-validation
 MB:feat/profile-screen
-ALL:docs/update-deployment
-ALL:chore/update-dependency
+ALL:docs/update-readme
+ALL:chore/update-ci
 ```
 
 Aturan:
 
 ```text
-type + description lowercase
-description pakai kebab-case
+description lowercase
+pakai kebab-case
 satu commit = satu perubahan logis
 ```
 
@@ -55,12 +57,12 @@ Hindari:
 ```text
 update
 fix bug
-final
 revisi
+final
 test123
 ```
 
-## Branch
+## Format Branch
 
 ```text
 scope/type/short-description
@@ -74,52 +76,65 @@ bf/fix/login-validation
 all/docs/update-readme
 ```
 
-## Frontend
+## Struktur Frontend
 
 ```text
-Page = wrapper
-Logic/isi = components/app
-Routing = routes
-Helper = utils
+pages          = wrapper halaman
+components/app = isi + logic fitur
+layouts        = layout
+routes         = routing
+utils          = helper
 ```
 
-Sebelum commit:
-
-```powershell
-docker compose exec frontend npm run build
-```
+Page dibuat tipis. Logic utama diletakkan di `components/app/...`.
 
 ## Backend
 
-Schema wajib lewat migration:
+Schema wajib melalui migration:
 
 ```powershell
 docker compose exec backend php artisan make:migration nama_migration
 docker compose exec backend php artisan migrate
 ```
 
-Data bawaan template gunakan Seeder.
-
-Sebelum commit:
-
-```powershell
-docker compose exec backend php artisan test
-```
+Data bawaan gunakan Seeder.
 
 ## Comment di Code
 
-Comment hanya untuk section atau alasan yang memang perlu dijelaskan.
-
-Gunakan:
+Gunakan comment hanya untuk section/alasan penting.
 
 ```ts
 // ==================================================================================================
 // MENU PERMISSION
 ```
 
-Hindari comment yang hanya mengulang kode.
+Hindari comment yang cuma mengulang kode.
 
-Khusus `.gitignore`, comment wajib menggunakan `#`.
+Khusus `.gitignore`, comment gunakan `#`.
+
+## Command Harian
+
+```powershell
+docker compose ps
+docker compose logs -f
+docker compose logs -f backend
+docker compose logs -f frontend
+
+docker compose exec backend php artisan migrate
+docker compose exec backend php artisan db:seed
+docker compose exec backend php artisan optimize:clear
+docker compose exec backend php artisan test
+
+docker compose exec frontend npm run build
+```
+
+Reset DB development:
+
+```powershell
+docker compose exec backend php artisan migrate:fresh --seed
+```
+
+Gunakan hanya untuk database development.
 
 ## Sebelum Push
 
@@ -138,4 +153,4 @@ private key
 password
 ```
 
-Jika ada perubahan database, pastikan migration ikut commit.
+Jika schema berubah, migration harus ikut commit. Jika ada data bawaan baru, update Seeder.

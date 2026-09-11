@@ -1,31 +1,30 @@
-# Integrasi dengan Template Services
+# Template Services
 
-`template_services` dipisahkan dari repository aplikasi agar database, Redis, dan reverse proxy dapat digunakan bersama oleh beberapa proyek Alterdev.
+`template_services` adalah infrastruktur bersama untuk **development lokal**.
 
-## Kontrak yang dibutuhkan Altertemplate
+## Service
 
-Repository infrastruktur wajib menyediakan:
-
-| Kebutuhan | Nama/port yang diharapkan |
+| Service | Target |
 | --- | --- |
 | Docker network | `template_services_template_network` |
-| MySQL service | `mysql:3306` |
-| Redis service | `redis:6379` |
-| Reverse proxy | port host `80` |
-| Frontend target | `altertemplate_frontend:5173` |
-| Backend target | `altertemplate_nginx_backend:80` |
+| MySQL | `mysql:3306` |
+| Redis | `redis:6379` |
+| phpMyAdmin | `localhost:8081` |
+| Reverse proxy | port 80 |
 
-Jika nama tersebut diubah di repository infrastruktur, `altertemplate/docker-compose.yml`, konfigurasi backend, dan konfigurasi proxy juga harus diperbarui bersama-sama.
+## Urutan Menjalankan
 
-## Konfigurasi reverse proxy development
+```powershell
+cd E:\project\alterdev\template_services
+docker compose up -d
 
-Di repository `template_services`, simpan virtual host proyek sebagai:
-
-```text
-nginx/conf.d/altertemplate.conf
+cd E:\project\alterdev\altertemplate
+docker compose up -d
 ```
 
-Konsep konfigurasinya:
+## Reverse Proxy
+
+Contoh:
 
 ```nginx
 resolver 127.0.0.11 valid=30s ipv6=off;
@@ -41,9 +40,6 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 
@@ -51,66 +47,67 @@ server {
     listen 80;
     server_name api.altertemplate.local;
 
-    client_max_body_size 50M;
-
     location / {
         set $upstream http://altertemplate_nginx_backend:80;
         proxy_pass $upstream;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 ```
 
-Setelah mengubah file Nginx:
+Setelah mengubah Nginx:
 
 ```powershell
-cd E:\project\alterdev\template_services
 docker compose exec nginx_proxy nginx -t
 docker compose restart nginx_proxy
 ```
 
-Selalu jalankan `nginx -t` terlebih dahulu agar kesalahan sintaks tidak mematikan seluruh domain lokal.
+## Project Baru
 
-## Menambahkan proyek Alterdev lain
-
-Untuk proyek baru, ulangi pola berikut:
-
-1. buat database baru dalam MySQL bersama;
-2. buat file virtual host baru di `nginx/conf.d`;
-3. hubungkan container proyek ke `template_services_template_network`;
-4. gunakan nama container yang unik;
-5. tambahkan domain lokal ke Windows hosts;
-6. jangan menggunakan port host tambahan jika trafik melewati reverse proxy.
-
-Contoh penamaan:
+Wajib unik:
 
 ```text
-namaaplikasi.local
-api.namaaplikasi.local
-namaaplikasi_frontend
-namaaplikasi_nginx_backend
-namaaplikasi_backend
+database
+domain lokal
+container name
+config Nginx
 ```
 
-## Batas tanggung jawab
+Contoh:
 
-Yang di-commit ke `altertemplate`:
+```text
+projeka.local
+api.projeka.local
 
-- source code aplikasi;
-- Compose container aplikasi;
-- Nginx internal Laravel;
-- `.env.example` tanpa secret;
-- dokumentasi kontrak infrastruktur.
+projeka_frontend
+projeka_backend
+projeka_nginx_backend
+projeka_queue
+```
 
-Yang di-commit ke `template_services`:
+## Batas Tanggung Jawab
 
-- Compose MySQL/Redis/reverse proxy;
-- virtual host setiap aplikasi;
-- script backup atau operasional infrastruktur;
-- dokumentasi port dan network bersama.
+Project repository:
 
-Data database, file `.env`, private key TLS, dan password production tidak boleh disimpan di salah satu repository.
+```text
+source aplikasi
+Docker Compose aplikasi
+Laravel
+React
+migration
+seeder
+CI/CD
+```
 
+`template_services`:
+
+```text
+MySQL
+Redis
+phpMyAdmin
+reverse proxy
+network bersama
+virtual host development
+```
+
+Jangan simpan `.env`, password, private key, atau dump production di Git.

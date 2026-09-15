@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useState,
   type ReactNode,
 } from "react";
 
@@ -12,6 +13,7 @@ import {
 import {
   clearAuth,
   getAuthUser,
+  getToken,
   getTokenExpiration,
   hasSidebarPath,
   isAuthenticated,
@@ -22,6 +24,10 @@ interface ProtectedRouteProps {
   children: ReactNode;
   requireMenuAccess?: boolean;
 }
+
+
+const API_URL =
+  import.meta.env.VITE_API_URL;
 
 
 export default function ProtectedRoute({
@@ -39,6 +45,23 @@ export default function ProtectedRoute({
 
   const user =
     getAuthUser();
+
+  const sidebarAllowed =
+    hasSidebarPath(
+      location.pathname
+    );
+
+  const [
+    hiddenRouteAllowed,
+    setHiddenRouteAllowed,
+  ] =
+    useState<
+      boolean | null
+    >(
+      requireMenuAccess
+        ? null
+        : true
+    );
 
 
   /*
@@ -106,6 +129,117 @@ export default function ProtectedRoute({
 
   /*
   |--------------------------------------------------------------------------
+  | HIDDEN MENU ACCESS
+  |--------------------------------------------------------------------------
+  */
+
+  useEffect(() => {
+    if (
+      !authenticated ||
+      !requireMenuAccess
+    ) {
+      return;
+    }
+
+    if (sidebarAllowed) {
+      setHiddenRouteAllowed(
+        true
+      );
+
+      return;
+    }
+
+    let cancelled =
+      false;
+
+    const checkAccess =
+      async () => {
+        try {
+          setHiddenRouteAllowed(
+            null
+          );
+
+          const token =
+            getToken();
+
+          if (!token) {
+            if (!cancelled) {
+              setHiddenRouteAllowed(
+                false
+              );
+            }
+
+            return;
+          }
+
+          const response =
+            await fetch(
+              `${API_URL}/auth/access?path=${encodeURIComponent(
+                location.pathname
+              )}`,
+              {
+                method:
+                  "GET",
+
+                headers: {
+                  Accept:
+                    "application/json",
+
+                  Authorization:
+                    `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (cancelled) {
+            return;
+          }
+
+          if (
+            response.status ===
+            401
+          ) {
+            clearAuth();
+
+            navigate(
+              "/login",
+              {
+                replace: true,
+              }
+            );
+
+            return;
+          }
+
+          setHiddenRouteAllowed(
+            response.ok
+          );
+        } catch {
+          if (!cancelled) {
+            setHiddenRouteAllowed(
+              false
+            );
+          }
+        }
+      };
+
+    void checkAccess();
+
+    return () => {
+      cancelled =
+        true;
+    };
+  }, [
+    authenticated,
+    requireMenuAccess,
+    sidebarAllowed,
+    location.pathname,
+    navigate,
+  ]);
+
+
+  /*
+  |--------------------------------------------------------------------------
   | AUTH
   |--------------------------------------------------------------------------
   */
@@ -131,9 +265,23 @@ export default function ProtectedRoute({
 
   if (
     requireMenuAccess &&
-    !hasSidebarPath(
-      location.pathname
-    )
+    !sidebarAllowed &&
+    hiddenRouteAllowed ===
+      null
+  ) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        Memuat halaman...
+      </div>
+    );
+  }
+
+
+  if (
+    requireMenuAccess &&
+    !sidebarAllowed &&
+    hiddenRouteAllowed ===
+      false
   ) {
     return (
       <Navigate

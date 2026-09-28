@@ -209,7 +209,7 @@ jobs:
 
       - name: Run production deployment
         run: |
-          ssh altertemplate-production \
+          ssh -tt altertemplate-production \
             "bash ~/.altertemplate-deploy/current/remote-deploy.sh \
             '$BACKEND_PATH' \
             '$FRONTEND_PATH' \

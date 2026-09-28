@@ -85,6 +85,16 @@ require 'vendor/autoload.php';
 echo 'Composer vendor OK'.PHP_EOL;
 "
 
+echo "Checking PostgreSQL PHP extension..."
+
+"$PHP_BIN" -r "
+if (!extension_loaded('pdo_pgsql')) {
+    fwrite(STDERR, 'ERROR: PHP extension pdo_pgsql belum aktif.'.PHP_EOL);
+    exit(1);
+}
+echo 'pdo_pgsql OK'.PHP_EOL;
+"
+
 echo "Clearing old Laravel cache..."
 
 "$PHP_BIN" artisan optimize:clear

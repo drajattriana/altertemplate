@@ -90,6 +90,8 @@ Page dibuat tipis. Logic utama diletakkan di `components/app/...`.
 
 ## Backend
 
+Jalankan perintah berikut di **PowerShell lokal**, dari folder utama project, misalnya `E:\project\alterdev\projecta`.
+
 Schema wajib melalui migration:
 
 ```powershell
@@ -114,6 +116,8 @@ Khusus `.gitignore`, comment gunakan `#`.
 
 ## Command Harian
 
+Jalankan di **PowerShell lokal**, dari folder utama project:
+
 ```powershell
 docker compose ps
 docker compose logs -f
@@ -137,6 +141,8 @@ docker compose exec backend php artisan migrate:fresh --seed
 Gunakan hanya untuk database development.
 
 ## Sebelum Push
+
+Jalankan di **PowerShell lokal**, dari folder utama project:
 
 ```powershell
 git status

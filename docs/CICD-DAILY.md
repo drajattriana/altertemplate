@@ -1,120 +1,131 @@
-# CI/CD Daily
+# CI/CD Sehari-hari
 
-Gunakan setelah project sudah online dan CI/CD sudah berhasil.
+Gunakan panduan ini setelah project sudah online dan deployment pertama berhasil.
 
 ## Alur Normal
 
-```text
-coding lokal
-→ test
-→ git status
+~~~text
+ubah kode di lokal
+→ test di lokal
 → commit
-→ git push origin main
-→ GitHub Actions
-→ production update
-```
+→ push ke main
+→ GitHub Actions berjalan
+→ hosting diperbarui otomatis
+~~~
 
-## Jika Ada Perubahan Database
+Contoh project dalam panduan ini adalah **projecta**.
 
-Schema wajib lewat migration:
+## 1. Buat Perubahan di Lokal
 
-```powershell
+Kerjakan di folder:
+
+~~~text
+E:\project\alterdev\projecta
+~~~
+
+Jika perubahan membutuhkan tabel atau kolom baru, jalankan di **PowerShell lokal**:
+
+~~~powershell
+cd E:\project\alterdev\projecta
 docker compose exec backend php artisan make:migration nama_migration
 docker compose exec backend php artisan migrate
-```
+~~~
 
-Jangan ubah schema production langsung di phpMyAdmin.
+Perintah pertama membuat file migration; perintah kedua mengujinya pada PostgreSQL lokal. Jangan mengubah struktur database production langsung dari cPanel atau phpPgAdmin.
 
-## Test Sebelum Push
+## 2. Test Sebelum Push
 
-Frontend:
+Jalankan di **PowerShell lokal**, dari folder project:
 
-```powershell
+~~~powershell
+cd E:\project\alterdev\projecta
 docker compose exec frontend npm run build
-```
-
-Backend:
-
-```powershell
 docker compose exec backend php artisan test
-```
+~~~
 
-## Commit + Push
+Fungsinya: memastikan frontend dapat dibangun dan test backend berhasil sebelum kode dikirim.
 
-```powershell
+## 3. Commit dan Push
+
+Masih di **PowerShell lokal**, folder project:
+
+~~~powershell
 git status
-git add PATH_FILE
+git add PATH_FILE_YANG_DIUBAH
 git commit -m "FE:feat/create-menu"
 git push origin main
-```
+~~~
 
-## Apa yang Otomatis?
+Ganti **PATH_FILE_YANG_DIUBAH** dengan file yang benar. Periksa hasil **git status** agar file **.env**, password, atau file yang tidak terkait tidak ikut.
 
-GitHub Actions:
+Push ke branch **main** otomatis memulai GitHub Actions jika variable **DEPLOY_ENABLED=true**.
 
-```text
-build backend
-build frontend
-upload
-migrate --force
-refresh cache
-publish frontend
-```
+## 4. Pantau Deployment
 
-### Migration
+Buka **GitHub repository → Actions → Deploy Production**.
 
-Otomatis untuk struktur database.
+Workflow akan:
 
-### Seeder
+1. menguji Laravel dengan PostgreSQL;
+2. membangun frontend;
+3. mengunggah backend dan frontend;
+4. menjalankan migration production;
+5. memperbarui cache Laravel.
 
-Tidak otomatis hanya karena push.
+Tunggu sampai seluruh step berwarna hijau, lalu periksa frontend dan API.
 
-Jika diperlukan:
+## 5. Migration dan Seeder
 
-```bash
-cd /home/alterdev/apps/PROJECT
-/usr/local/bin/php artisan db:seed --force
-```
+Migration dijalankan otomatis oleh CI/CD untuk mengubah struktur database.
 
-### Data User
+Seeder tidak otomatis dijalankan setiap push agar data production tidak terduplikasi. Jika seeder memang diperlukan, jalankan melalui **SSH hosting**:
 
-Data user/transaksi/operasional tetap berada di database production. Data lokal tidak disinkronkan ke production.
+~~~bash
+cd /home/alterdev/apps/projecta
+PHP_BIN=/opt/cpanel/ea-php83/root/usr/bin/php
+"$PHP_BIN" artisan db:seed --force
+~~~
 
-## Jika Deploy Gagal
+Data user, transaksi, dan data operasional tetap berada di PostgreSQL production. Data lokal tidak disalin ke production.
 
-Jangan rerun berkali-kali. Buka step merah di GitHub Actions, perbaiki sumber error, lalu push ulang.
+## 6. Jika Deployment Gagal
 
-Kategori umum:
+Buka step merah di **GitHub Actions**, baca error terakhir, perbaiki sumbernya di lokal, lalu commit dan push ulang.
 
-```text
-build
-SSH
-SCP
-migration
-.env production
-database privilege
-```
+Periksa sesuai jenis error:
 
-## Pause Deploy
+- **build**: dependency atau kode frontend/backend;
+- **SSH/SCP**: host, port, key, atau permission;
+- **migration**: file migration atau koneksi database;
+- **could not find driver**: nilai **PHP_BIN** atau ekstensi **pdo_pgsql**;
+- **authentication failed**: credential PostgreSQL di file **.env** hosting.
 
-```text
+Jangan menjalankan ulang workflow berkali-kali sebelum sumber error diperbaiki.
+
+## 7. Menghentikan Deployment Sementara
+
+Kerjakan di **GitHub → Settings → Secrets and variables → Actions → Variables**:
+
+~~~text
 DEPLOY_ENABLED=false
-```
+~~~
 
-Aktifkan lagi setelah aman:
+Fungsinya: push tetap masuk ke GitHub, tetapi job deployment tidak dijalankan.
 
-```text
+Untuk mengaktifkan kembali:
+
+~~~text
 DEPLOY_ENABLED=true
-```
+~~~
 
-## Jangan Di-push
+## File yang Tidak Boleh Di-push
 
-```text
+~~~text
 .env
-password
+password atau token
 SSH private key
 vendor
 node_modules
 dist
 database dump production
-```
+~~~

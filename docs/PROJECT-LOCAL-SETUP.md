@@ -1,81 +1,106 @@
-# Project Local Setup
+# Setup Project Baru di Lokal
 
-Gunakan tutorial ini setiap kali membuat project baru dari Altertemplate.
-
-Contoh:
+Tutorial ini memakai contoh berikut:
 
 ```text
-Project  : mitrakita
-Frontend : http://mitrakita.local
-API      : http://api.mitrakita.local
-Database : mitrakita
+Repository sumber : altertemplate
+Project baru      : projecta
+Folder lokal      : E:\project\alterdev\projecta
+Frontend          : http://projecta.local
+API               : http://api.projecta.local
+Database          : projecta
 ```
 
-Ganti `mitrakita` sesuai nama project.
+Ganti `projecta` dengan nama project sebenarnya.
 
-## 1. Buat Repository Baru
+## 1. Clone Repository Sumber
+
+Jalankan di **PowerShell lokal**, dari folder `E:\project\alterdev`:
 
 ```powershell
 cd E:\project\alterdev
-git clone URL_REPOSITORY_ALTERTEMPLATE mitrakita
-cd mitrakita
-
+git clone URL_REPOSITORY_ALTERTEMPLATE projecta
+cd projecta
 git remote remove origin
-git remote add origin URL_REPOSITORY_MITRAKITA
+git remote add origin URL_REPOSITORY_PROJECTA
 git remote -v
 ```
 
-## 2. Ubah Docker Compose
+Fungsinya: menyalin Altertemplate ke folder `projecta`, lalu menghubungkannya ke repository GitHub milik Project A.
 
-Buat unik:
+## 2. Ganti Identitas Docker
+
+Buka file lokal:
 
 ```text
-altertemplate_backend       → mitrakita_backend
-altertemplate_nginx_backend → mitrakita_nginx_backend
-altertemplate_frontend      → mitrakita_frontend
-altertemplate_queue         → mitrakita_queue
-DB_DATABASE=altertemplate   → DB_DATABASE=mitrakita
+E:\project\alterdev\projecta\docker-compose.yml
 ```
 
-Tetap:
+Ganti nilai berikut:
 
 ```text
-DB_HOST=mysql
+altertemplate_backend       → projecta_backend
+altertemplate_nginx_backend → projecta_nginx_backend
+altertemplate_frontend      → projecta_frontend
+altertemplate_queue         → projecta_queue
+DB_DATABASE=altertemplate   → DB_DATABASE=projecta
+```
+
+Ada dua `DB_DATABASE`: satu untuk service `backend` dan satu untuk `queue`. Jangan mengubah:
+
+```text
+DB_HOST=postgres
 REDIS_HOST=redis
 template_services_template_network
 ```
 
-## 3. Buat Database Lokal
+Fungsinya: mencegah nama container dan database bertabrakan dengan project lain.
+
+## 3. Jalankan Service Bersama dan Buat Database
+
+Jalankan di **PowerShell lokal**, dari repository `template_services`:
 
 ```powershell
 cd E:\project\alterdev\template_services
 docker compose up -d
-
-docker compose exec mysql mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS mitrakita CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+docker compose exec postgres createdb -U postgres projecta
 ```
 
-## 4. Backend `.env`
+Fungsinya: menjalankan PostgreSQL, Redis, dan Nginx bersama, lalu membuat database `projecta`. Jika database sudah ada, abaikan error `already exists`.
+
+## 4. Atur Backend
+
+Jalankan di **PowerShell lokal**, dari folder project:
 
 ```powershell
-cd E:\project\alterdev\mitrakita
+cd E:\project\alterdev\projecta
 Copy-Item backend\.env.example backend\.env
 ```
 
-Minimal:
+Fungsinya: membuat konfigurasi lokal Laravel. File `.env` tidak boleh di-commit.
+
+Buka file:
+
+```text
+E:\project\alterdev\projecta\backend\.env
+```
+
+Pastikan nilai utamanya:
 
 ```env
-APP_NAME=Mitrakita
+APP_NAME=ProjectA
 APP_ENV=local
 APP_DEBUG=true
-APP_URL=http://api.mitrakita.local
-FRONTEND_URL=http://mitrakita.local
+APP_URL=http://api.projecta.local
+FRONTEND_URL=http://projecta.local
 
-DB_CONNECTION=mysql
-DB_HOST=mysql
-DB_PORT=3306
-DB_DATABASE=mitrakita
-DB_USERNAME=root
+DB_CONNECTION=pgsql
+DB_HOST=postgres
+DB_PORT=5432
+DB_DATABASE=projecta
+DB_USERNAME=postgres
 DB_PASSWORD=root
+DB_SSLMODE=prefer
 
 SESSION_DRIVER=redis
 CACHE_STORE=redis
@@ -85,28 +110,36 @@ REDIS_HOST=redis
 REDIS_PORT=6379
 ```
 
-Update juga `backend/.env.example`. Jangan commit `.env`.
+Sesuaikan juga file `backend/.env.example` dengan nama database dan URL baru agar anggota tim mendapat contoh yang benar.
 
-## 5. Frontend
+## 5. Atur Frontend
 
-`frontend/.env`:
+Buat atau buka file lokal:
+
+```text
+E:\project\alterdev\projecta\frontend\.env
+```
+
+Isi:
 
 ```env
-VITE_API_URL=http://api.mitrakita.local/api
+VITE_API_URL=http://api.projecta.local/api
 ```
 
-Di `frontend/vite.config.ts`:
+Kemudian buka `frontend/vite.config.js` dan pastikan host berikut diizinkan:
 
-```ts
+```js
 allowedHosts: [
-  'mitrakita.local',
+  'projecta.local',
   'localhost',
-],
+]
 ```
 
-## 6. Windows Hosts
+Fungsinya: mengarahkan frontend ke API lokal dan mengizinkan domain `projecta.local`.
 
-Buka Notepad sebagai Administrator lalu edit:
+## 6. Daftarkan Domain Lokal Windows
+
+Buka **Notepad sebagai Administrator**, lalu buka file:
 
 ```text
 C:\Windows\System32\drivers\etc\hosts
@@ -115,90 +148,60 @@ C:\Windows\System32\drivers\etc\hosts
 Tambahkan:
 
 ```text
-127.0.0.1 mitrakita.local
-127.0.0.1 api.mitrakita.local
+127.0.0.1 projecta.local
+127.0.0.1 api.projecta.local
 ```
 
-Lalu:
+Setelah disimpan, jalankan di **PowerShell lokal**:
 
 ```powershell
 ipconfig /flushdns
 ```
 
-## 7. Reverse Proxy Development
+Fungsinya: membuat kedua domain lokal mengarah ke komputer sendiri.
 
-Buat:
+## 7. Buat Konfigurasi Nginx Lokal
 
-```text
-template_services/nginx/conf.d/mitrakita.conf
-```
-
-```nginx
-# FRONTEND
-server {
-    listen 80;
-    server_name mitrakita.local;
-
-    location / {
-        set $upstream http://mitrakita_frontend:5173;
-        proxy_pass $upstream;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-
-# BACKEND API
-server {
-    listen 80;
-    server_name api.mitrakita.local;
-    client_max_body_size 50M;
-
-    location / {
-        set $upstream http://mitrakita_nginx_backend:80;
-        proxy_pass $upstream;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Catatan `resolver`
-
-Jika `resolver 127.0.0.11...` sudah ada di config lain/global, jangan tulis lagi di config project.
-
-Jika muncul:
-
-```text
-"resolver" directive is duplicate
-```
-
-hapus baris `resolver` dari config project.
-
-## 8. Jalankan Docker Project
+Jalankan di **PowerShell lokal**:
 
 ```powershell
-cd E:\project\alterdev\mitrakita
+Copy-Item E:\project\alterdev\template_services\nginx\conf.d\altertemplate.conf E:\project\alterdev\template_services\nginx\conf.d\projecta.conf
+```
+
+Fungsinya: membuat konfigurasi reverse proxy Project A dari contoh Altertemplate.
+
+Buka file:
+
+```text
+E:\project\alterdev\template_services\nginx\conf.d\projecta.conf
+```
+
+Ganti semua nilai berikut:
+
+```text
+altertemplate.local             → projecta.local
+api.altertemplate.local         → api.projecta.local
+altertemplate_frontend          → projecta_frontend
+altertemplate_nginx_backend     → projecta_nginx_backend
+```
+
+File ini berada di repository `template_services`, bukan di repository `projecta`.
+
+## 8. Jalankan Container Project
+
+Jalankan di **PowerShell lokal**, dari folder project:
+
+```powershell
+cd E:\project\alterdev\projecta
 docker compose up -d --build
 docker compose ps
 ```
 
-Target:
-
-```text
-mitrakita_backend
-mitrakita_nginx_backend
-mitrakita_frontend
-mitrakita_queue
-```
+Fungsinya: membangun dan menjalankan backend, frontend, queue, dan Nginx backend Project A.
 
 ## 9. Inisialisasi Laravel
+
+Masih di **PowerShell lokal**, folder `E:\project\alterdev\projecta`:
 
 ```powershell
 docker compose exec backend php artisan key:generate
@@ -208,7 +211,11 @@ docker compose exec backend php artisan db:seed
 docker compose exec backend php artisan optimize:clear
 ```
 
+Fungsinya: membuat `APP_KEY`, membuat `JWT_SECRET`, menyiapkan tabel, mengisi data awal, dan membersihkan cache Laravel.
+
 ## 10. Aktifkan Reverse Proxy
+
+Jalankan di **PowerShell lokal**, dari repository `template_services`:
 
 ```powershell
 cd E:\project\alterdev\template_services
@@ -216,36 +223,26 @@ docker compose exec nginx_proxy nginx -t
 docker compose restart nginx_proxy
 ```
 
-Jika proxy restart-loop:
+`nginx -t` memeriksa konfigurasi. Restart hanya dilakukan setelah hasil pemeriksaan berhasil.
+
+Jika Nginx gagal:
 
 ```powershell
 docker compose logs --tail=100 nginx_proxy
 ```
 
-## 11. Test
+## 11. Verifikasi
+
+Buka di browser lokal:
 
 ```text
-http://mitrakita.local
-http://api.mitrakita.local/up
+http://projecta.local
+http://api.projecta.local/up
 ```
 
-Test login, role, permission, menu, dashboard, dan API.
+Pastikan:
 
-## Checklist
-
-- [ ] repository baru
-- [ ] remote Git baru
-- [ ] container unik
-- [ ] database lokal
-- [ ] backend `.env`
-- [ ] `.env.example`
-- [ ] frontend `.env`
-- [ ] Vite allowedHosts
-- [ ] Windows hosts
-- [ ] reverse proxy
-- [ ] Docker berjalan
-- [ ] APP_KEY
-- [ ] JWT_SECRET
-- [ ] migration
-- [ ] seeder
-- [ ] frontend + API normal
+- frontend terbuka;
+- endpoint API `/up` berhasil;
+- login JWT berhasil;
+- dashboard, role, permission, dan menu dapat digunakan.

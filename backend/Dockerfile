@@ -14,7 +14,8 @@ RUN apk add --no-cache \
     zip \
     unzip \
     oniguruma-dev \
-    freetype-dev
+    freetype-dev \
+    postgresql-dev
 
 # ==============================================================================================
 # PHP EXTENSIONS
@@ -22,7 +23,7 @@ RUN docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
     && docker-php-ext-install \
-        pdo_mysql \
+        pdo_pgsql \
         mbstring \
         exif \
         pcntl \

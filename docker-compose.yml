@@ -1,6 +1,6 @@
 services:
 
-  # ==================================================================================================
+  # ================================================================================================
   # PHP-FPM Laravel
   backend:
     build:
@@ -11,28 +11,27 @@ services:
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
-      - /var/www/vendor        # pakai vendor dari dalam container
+      - /var/www/vendor
     command: sh -c "composer install --no-interaction --prefer-dist && php-fpm"
     environment:
-      - DB_CONNECTION=pgsql
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_DATABASE=altertemplate
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=root
-      - DB_SSLMODE=prefer
-      - REDIS_CLIENT=predis    # ← Redis
-      - REDIS_HOST=redis       # ← Redis
-      - REDIS_PORT=6379        # ← Redis
-      - SESSION_DRIVER=redis   # ← session ke Redis
-      - CACHE_STORE=redis      # ← cache ke Redis
-      - QUEUE_CONNECTION=redis # ← queue ke Redis
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: altertemplate
+      DB_USERNAME: postgres
+      DB_PASSWORD: root
+      DB_SSLMODE: prefer
+      REDIS_CLIENT: predis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SESSION_DRIVER: redis
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
     networks:
       - template_services_template_network
 
-  # ==================================================================================================
-  # Nginx untuk Laravel
-
+  # ================================================================================================
+  # Nginx Laravel
   nginx_backend:
     image: nginx:stable-alpine
     container_name: altertemplate_nginx_backend
@@ -45,23 +44,22 @@ services:
     networks:
       - template_services_template_network
 
-  # ==================================================================================================
-  # React — Vite Dev Server (Hot Reload)
-  
+  # ================================================================================================
+  # React + Vite development server
   frontend:
     image: node:20-alpine
     container_name: altertemplate_frontend
+    restart: unless-stopped
     working_dir: /app
     volumes:
       - ./frontend:/app
-      - /app/node_modules      # pakai node_modules dari dalam container
+      - /app/node_modules
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     networks:
       - template_services_template_network
 
-  # ==================================================================================================
-  # Queue Worker
-
+  # ================================================================================================
+  # Laravel queue worker
   queue:
     build:
       context: ./backend
@@ -74,17 +72,17 @@ services:
       - /var/www/vendor
     command: sh -c "composer install --no-interaction --prefer-dist && php artisan queue:work --sleep=3 --tries=3"
     environment:
-      - DB_CONNECTION=pgsql
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_DATABASE=altertemplate
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=root
-      - DB_SSLMODE=prefer
-      - REDIS_CLIENT=predis
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - QUEUE_CONNECTION=redis
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: altertemplate
+      DB_USERNAME: postgres
+      DB_PASSWORD: root
+      DB_SSLMODE: prefer
+      REDIS_CLIENT: predis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      QUEUE_CONNECTION: redis
     depends_on:
       - backend
     networks:
@@ -92,4 +90,4 @@ services:
 
 networks:
   template_services_template_network:
-    external: true    # pakai network dari template_services
+    external: true

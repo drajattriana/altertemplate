@@ -181,6 +181,9 @@ jobs:
               ConnectTimeout 30
               ServerAliveInterval 15
               ServerAliveCountMax 4
+              ControlMaster auto
+              ControlPersist 120
+              ControlPath ~/.ssh/altertemplate-%C
           EOF
 
           chmod 600 ~/.ssh/config
@@ -209,7 +212,7 @@ jobs:
 
       - name: Run production deployment
         run: |
-          ssh -tt altertemplate-production \
+          ssh altertemplate-production \
             "bash ~/.altertemplate-deploy/current/remote-deploy.sh \
             '$BACKEND_PATH' \
             '$FRONTEND_PATH' \

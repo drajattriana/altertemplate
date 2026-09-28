@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# cPanel/CloudLinux dapat mengirim SIGHUP ke proses CLI yang berjalan melalui
+# remote command non-interaktif. Abaikan signal tersebut selama deployment.
+trap '' HUP
+
 BACKEND_PATH="$1"
 FRONTEND_PATH="$2"
 PHP_BIN="${3:-php}"
